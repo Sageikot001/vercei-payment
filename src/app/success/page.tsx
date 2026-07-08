@@ -1,5 +1,6 @@
 'use client';
 
+import { Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import styled from 'styled-components';
 import Header from '@/components/Header';
@@ -112,7 +113,7 @@ const ErrorIcon = styled(SuccessIcon)`
   background: #fee2e2;
 `;
 
-export default function SuccessPage() {
+function SuccessContent() {
   const searchParams = useSearchParams();
   const reference = searchParams.get('reference') || searchParams.get('trxref');
 
@@ -157,5 +158,13 @@ export default function SuccessPage() {
         </SuccessCard>
       </Main>
     </PageWrapper>
+  );
+}
+
+export default function SuccessPage() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <SuccessContent />
+    </Suspense>
   );
 }

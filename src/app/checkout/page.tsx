@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { Suspense, useState, useEffect } from 'react';
 import { useSearchParams } from 'next/navigation';
 import styled from 'styled-components';
 import Header from '@/components/Header';
@@ -165,7 +165,7 @@ const BackLink = styled.a`
   }
 `;
 
-export default function CheckoutPage() {
+function CheckoutContent() {
   const searchParams = useSearchParams();
   const planId = searchParams.get('plan');
   const currencyParam = searchParams.get('currency') as Currency | null;
@@ -281,5 +281,13 @@ export default function CheckoutPage() {
         <BackLink href="/pricing">← Back to pricing</BackLink>
       </Main>
     </PageWrapper>
+  );
+}
+
+export default function CheckoutPage() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <CheckoutContent />
+    </Suspense>
   );
 }
