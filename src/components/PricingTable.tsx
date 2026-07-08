@@ -2,7 +2,7 @@
 
 import styled from 'styled-components';
 import { plans, features, BillingPeriod, calculateTotal } from '@/lib/plans';
-import { Currency, formatPrice } from '@/lib/currency';
+import { formatPrice } from '@/lib/currency';
 import FeatureRow from './FeatureRow';
 
 const TableWrapper = styled.div`
@@ -53,7 +53,7 @@ const PlanPrice = styled.span`
 
 interface PricingTableProps {
   billingPeriod: BillingPeriod;
-  currency: Currency;
+  currency: string;
 }
 
 export default function PricingTable({ billingPeriod, currency }: PricingTableProps) {

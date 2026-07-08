@@ -5,7 +5,7 @@ import { useSearchParams } from 'next/navigation';
 import styled from 'styled-components';
 import Header from '@/components/Header';
 import { getPlanById, getBillingPeriod, calculateTotal, features, Plan, BillingPeriod } from '@/lib/plans';
-import { Currency, formatPrice } from '@/lib/currency';
+import { formatPrice } from '@/lib/currency';
 
 const PageWrapper = styled.div`
   min-height: 100vh;
@@ -175,11 +175,11 @@ function CheckoutContent() {
   const searchParams = useSearchParams();
   const planId = searchParams.get('plan');
   const billingParam = searchParams.get('billing') as BillingPeriod | null;
-  const currencyParam = searchParams.get('currency') as Currency | null;
+  const currencyParam = searchParams.get('currency');
 
   const [plan, setPlan] = useState<Plan | null>(null);
   const [billingPeriod, setBillingPeriod] = useState<BillingPeriod>('24-months');
-  const [currency, setCurrency] = useState<Currency>('USD');
+  const [currency, setCurrency] = useState('USD');
   const [email, setEmail] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');

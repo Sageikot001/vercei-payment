@@ -2,6 +2,7 @@
 
 import styled from 'styled-components';
 import Link from 'next/link';
+import CurrencySelector from './CurrencySelector';
 
 const HeaderWrapper = styled.header`
   display: flex;
@@ -24,6 +25,12 @@ const Logo = styled(Link)`
   }
 `;
 
+const RightSection = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 16px;
+`;
+
 const NavLink = styled(Link)`
   font-size: 14px;
   color: #666666;
@@ -38,13 +45,23 @@ const NavLink = styled(Link)`
   }
 `;
 
-export default function Header() {
+interface HeaderProps {
+  currency?: string;
+  onCurrencyChange?: (currency: string) => void;
+}
+
+export default function Header({ currency, onCurrencyChange }: HeaderProps) {
   return (
     <HeaderWrapper>
       <Logo href="/">
         Verce<span>I</span>
       </Logo>
-      <NavLink href="/login">Login</NavLink>
+      <RightSection>
+        {currency && onCurrencyChange && (
+          <CurrencySelector currency={currency} onSelect={onCurrencyChange} />
+        )}
+        <NavLink href="/login">Login</NavLink>
+      </RightSection>
     </HeaderWrapper>
   );
 }

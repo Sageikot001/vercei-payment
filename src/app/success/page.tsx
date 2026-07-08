@@ -153,7 +153,7 @@ function SuccessContent() {
           </ReferenceBox>
           <DashboardButton href="/dashboard">Go to Dashboard</DashboardButton>
           <SupportLink>
-            Need help? <a href="mailto:support@vercei.com">Contact Support</a>
+            Need help? <a href="mailto:support@VerceI.com">Contact Support</a>
           </SupportLink>
         </SuccessCard>
       </Main>

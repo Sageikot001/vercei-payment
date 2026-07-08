@@ -2,7 +2,7 @@
 
 import styled from 'styled-components';
 import { Plan, BillingPeriod, features, calculateTotal, getBillingPeriod } from '@/lib/plans';
-import { Currency, formatPrice } from '@/lib/currency';
+import { formatPrice } from '@/lib/currency';
 
 const Card = styled.div<{ $tag?: string }>`
   background: #ffffff;
@@ -121,7 +121,7 @@ interface PlanCardProps {
   plan: Plan;
   planIndex: number;
   billingPeriod: BillingPeriod;
-  currency: Currency;
+  currency: string;
   onSelect: (plan: Plan) => void;
 }
 

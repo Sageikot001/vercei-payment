@@ -5,11 +5,9 @@ import { useRouter } from 'next/navigation';
 import styled from 'styled-components';
 import Header from '@/components/Header';
 import BillingToggle from '@/components/BillingToggle';
-import CurrencyToggle from '@/components/CurrencyToggle';
 import PlanCard from '@/components/PlanCard';
 import PricingTable from '@/components/PricingTable';
 import { plans, Plan, BillingPeriod } from '@/lib/plans';
-import { Currency } from '@/lib/currency';
 
 const PageWrapper = styled.div`
   min-height: 100vh;
@@ -45,13 +43,6 @@ const Subtitle = styled.p`
   margin: 0 0 32px 0;
 `;
 
-const TogglesWrapper = styled.div`
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 24px;
-`;
-
 const PlansGrid = styled.div`
   display: grid;
   grid-template-columns: repeat(3, 1fr);
@@ -81,7 +72,7 @@ const TableTitle = styled.h2`
 export default function PricingPage() {
   const router = useRouter();
   const [billingPeriod, setBillingPeriod] = useState<BillingPeriod>('24-months');
-  const [currency, setCurrency] = useState<Currency>('USD');
+  const [currency, setCurrency] = useState('USD');
 
   const handleSelectPlan = (plan: Plan) => {
     router.push(`/checkout?plan=${plan.id}&billing=${billingPeriod}&currency=${currency}`);
@@ -89,15 +80,12 @@ export default function PricingPage() {
 
   return (
     <PageWrapper>
-      <Header />
+      <Header currency={currency} onCurrencyChange={setCurrency} />
       <Main>
         <HeroSection>
           <Title>Choose Your Hosting Plan</Title>
           <Subtitle>Simple, transparent pricing. No hidden fees.</Subtitle>
-          <TogglesWrapper>
-            <BillingToggle billingPeriod={billingPeriod} onToggle={setBillingPeriod} />
-            <CurrencyToggle currency={currency} onToggle={setCurrency} />
-          </TogglesWrapper>
+          <BillingToggle billingPeriod={billingPeriod} onToggle={setBillingPeriod} />
         </HeroSection>
 
         <PlansGrid>

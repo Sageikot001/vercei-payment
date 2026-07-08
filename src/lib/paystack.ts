@@ -10,7 +10,7 @@ export interface PaystackInitResponse {
 export function generateReference(): string {
   const timestamp = Date.now();
   const random = Math.random().toString(36).substring(2, 8);
-  return `vercei_${timestamp}_${random}`;
+  return `VerceI_${timestamp}_${random}`;
 }
 
 export function getAmountInKobo(plan: Plan, billingPeriod: BillingPeriod): number {
