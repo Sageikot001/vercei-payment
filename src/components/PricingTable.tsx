@@ -1,7 +1,7 @@
 'use client';
 
 import styled from 'styled-components';
-import { plans, features } from '@/lib/plans';
+import { plans, features, BillingPeriod, calculateTotal } from '@/lib/plans';
 import { Currency, formatPrice } from '@/lib/currency';
 import FeatureRow from './FeatureRow';
 
@@ -52,10 +52,11 @@ const PlanPrice = styled.span`
 `;
 
 interface PricingTableProps {
+  billingPeriod: BillingPeriod;
   currency: Currency;
 }
 
-export default function PricingTable({ currency }: PricingTableProps) {
+export default function PricingTable({ billingPeriod, currency }: PricingTableProps) {
   return (
     <TableWrapper>
       <Table>
@@ -66,7 +67,7 @@ export default function PricingTable({ currency }: PricingTableProps) {
               <HeaderCell key={plan.id}>
                 <PlanHeader>
                   <PlanName>{plan.name}</PlanName>
-                  <PlanPrice>{formatPrice(plan.priceUSD, currency)}</PlanPrice>
+                  <PlanPrice>{formatPrice(calculateTotal(plan, billingPeriod), currency)}</PlanPrice>
                 </PlanHeader>
               </HeaderCell>
             ))}

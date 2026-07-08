@@ -4,7 +4,7 @@ import { Suspense, useState, useEffect } from 'react';
 import { useSearchParams } from 'next/navigation';
 import styled from 'styled-components';
 import Header from '@/components/Header';
-import { getPlanById, features, Plan } from '@/lib/plans';
+import { getPlanById, getBillingPeriod, calculateTotal, features, Plan, BillingPeriod } from '@/lib/plans';
 import { Currency, formatPrice } from '@/lib/currency';
 
 const PageWrapper = styled.div`
@@ -41,6 +41,12 @@ const PlanSummary = styled.div`
 const PlanName = styled.h2`
   font-size: 20px;
   font-weight: 600;
+  margin: 0 0 8px 0;
+`;
+
+const BillingInfo = styled.p`
+  font-size: 14px;
+  color: #666666;
   margin: 0 0 16px 0;
 `;
 
@@ -168,9 +174,11 @@ const BackLink = styled.a`
 function CheckoutContent() {
   const searchParams = useSearchParams();
   const planId = searchParams.get('plan');
+  const billingParam = searchParams.get('billing') as BillingPeriod | null;
   const currencyParam = searchParams.get('currency') as Currency | null;
 
   const [plan, setPlan] = useState<Plan | null>(null);
+  const [billingPeriod, setBillingPeriod] = useState<BillingPeriod>('24-months');
   const [currency, setCurrency] = useState<Currency>('USD');
   const [email, setEmail] = useState('');
   const [loading, setLoading] = useState(false);
@@ -181,17 +189,24 @@ function CheckoutContent() {
       const foundPlan = getPlanById(planId);
       setPlan(foundPlan || null);
     }
+    if (billingParam) {
+      setBillingPeriod(billingParam);
+    }
     if (currencyParam) {
       setCurrency(currencyParam);
     }
-  }, [planId, currencyParam]);
+  }, [planId, billingParam, currencyParam]);
 
+  const planIndex = plan ? (plan.id === 'basic' ? 0 : plan.id === 'standard' ? 1 : 2) : 0;
   const planFeatures = plan
-    ? features.map((f) => ({
+    ? features.slice(0, 6).map((f) => ({
         name: f.name,
-        value: f.values[planId === '6-months' ? 0 : planId === '12-months' ? 1 : 2],
+        value: f.values[planIndex],
       }))
     : [];
+
+  const period = getBillingPeriod(billingPeriod);
+  const totalPrice = plan ? calculateTotal(plan, billingPeriod) : 0;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -207,6 +222,7 @@ function CheckoutContent() {
         body: JSON.stringify({
           email,
           planId: plan.id,
+          billingPeriod,
           currency,
         }),
       });
@@ -243,9 +259,10 @@ function CheckoutContent() {
         <Title>Complete Your Purchase</Title>
         <CheckoutCard>
           <PlanSummary>
-            <PlanName>{plan.name} Hosting</PlanName>
+            <PlanName>{plan.name} Plan</PlanName>
+            <BillingInfo>{period?.label} billing ({formatPrice(plan.pricing[billingPeriod], currency)}/mo)</BillingInfo>
             <FeatureList>
-              {planFeatures.slice(0, 6).map((feature) => (
+              {planFeatures.map((feature) => (
                 <FeatureItem key={feature.name}>
                   <span>{feature.name}</span>
                   <span>{feature.value}</span>
@@ -255,8 +272,8 @@ function CheckoutContent() {
           </PlanSummary>
 
           <TotalSection>
-            <TotalLabel>Total</TotalLabel>
-            <TotalPrice>{formatPrice(plan.priceUSD, currency)}</TotalPrice>
+            <TotalLabel>Total ({period?.months} months)</TotalLabel>
+            <TotalPrice>{formatPrice(totalPrice, currency)}</TotalPrice>
           </TotalSection>
 
           <FormSection>

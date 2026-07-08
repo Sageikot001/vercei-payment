@@ -4,10 +4,11 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import styled from 'styled-components';
 import Header from '@/components/Header';
+import BillingToggle from '@/components/BillingToggle';
 import CurrencyToggle from '@/components/CurrencyToggle';
 import PlanCard from '@/components/PlanCard';
 import PricingTable from '@/components/PricingTable';
-import { plans, Plan } from '@/lib/plans';
+import { plans, Plan, BillingPeriod } from '@/lib/plans';
 import { Currency } from '@/lib/currency';
 
 const PageWrapper = styled.div`
@@ -44,6 +45,13 @@ const Subtitle = styled.p`
   margin: 0 0 32px 0;
 `;
 
+const TogglesWrapper = styled.div`
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 24px;
+`;
+
 const PlansGrid = styled.div`
   display: grid;
   grid-template-columns: repeat(3, 1fr);
@@ -72,10 +80,11 @@ const TableTitle = styled.h2`
 
 export default function PricingPage() {
   const router = useRouter();
+  const [billingPeriod, setBillingPeriod] = useState<BillingPeriod>('24-months');
   const [currency, setCurrency] = useState<Currency>('USD');
 
   const handleSelectPlan = (plan: Plan) => {
-    router.push(`/checkout?plan=${plan.id}&currency=${currency}`);
+    router.push(`/checkout?plan=${plan.id}&billing=${billingPeriod}&currency=${currency}`);
   };
 
   return (
@@ -85,7 +94,10 @@ export default function PricingPage() {
         <HeroSection>
           <Title>Choose Your Hosting Plan</Title>
           <Subtitle>Simple, transparent pricing. No hidden fees.</Subtitle>
-          <CurrencyToggle currency={currency} onToggle={setCurrency} />
+          <TogglesWrapper>
+            <BillingToggle billingPeriod={billingPeriod} onToggle={setBillingPeriod} />
+            <CurrencyToggle currency={currency} onToggle={setCurrency} />
+          </TogglesWrapper>
         </HeroSection>
 
         <PlansGrid>
@@ -94,6 +106,7 @@ export default function PricingPage() {
               key={plan.id}
               plan={plan}
               planIndex={index}
+              billingPeriod={billingPeriod}
               currency={currency}
               onSelect={handleSelectPlan}
             />
@@ -102,7 +115,7 @@ export default function PricingPage() {
 
         <TableSection>
           <TableTitle>Full Feature Comparison</TableTitle>
-          <PricingTable currency={currency} />
+          <PricingTable billingPeriod={billingPeriod} currency={currency} />
         </TableSection>
       </Main>
     </PageWrapper>

@@ -1,0 +1,484 @@
+<title>VerceI - Pricing Preview</title>
+<style>
+  :root {
+    --bg: #fafafa;
+    --card: #ffffff;
+    --text: #000000;
+    --text-muted: #666666;
+    --border: #eaeaea;
+    --accent: #0070f3;
+    --popular: #7c3aed;
+    --best-value: #059669;
+    --toggle-bg: #f5f5f5;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #0a0a0a;
+      --card: #141414;
+      --text: #ffffff;
+      --text-muted: #a0a0a0;
+      --border: #2a2a2a;
+      --toggle-bg: #1a1a1a;
+    }
+  }
+
+  :root[data-theme="dark"] {
+    --bg: #0a0a0a;
+    --card: #141414;
+    --text: #ffffff;
+    --text-muted: #a0a0a0;
+    --border: #2a2a2a;
+    --toggle-bg: #1a1a1a;
+  }
+
+  :root[data-theme="light"] {
+    --bg: #fafafa;
+    --card: #ffffff;
+    --text: #000000;
+    --text-muted: #666666;
+    --border: #eaeaea;
+    --toggle-bg: #f5f5f5;
+  }
+
+  * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+  }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.5;
+  }
+
+  header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 16px 24px;
+    border-bottom: 1px solid var(--border);
+    background: var(--card);
+  }
+
+  .logo {
+    font-size: 24px;
+    font-weight: 700;
+    letter-spacing: -0.5px;
+  }
+
+  .logo span {
+    color: var(--accent);
+  }
+
+  .login {
+    font-size: 14px;
+    color: var(--text-muted);
+    text-decoration: none;
+    padding: 8px 16px;
+    border-radius: 6px;
+  }
+
+  main {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 48px 24px;
+  }
+
+  .hero {
+    text-align: center;
+    margin-bottom: 48px;
+  }
+
+  h1 {
+    font-size: clamp(28px, 5vw, 42px);
+    font-weight: 700;
+    letter-spacing: -1px;
+    margin-bottom: 16px;
+    text-wrap: balance;
+  }
+
+  .subtitle {
+    font-size: 18px;
+    color: var(--text-muted);
+    margin-bottom: 32px;
+  }
+
+  .toggle-wrapper {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .toggle {
+    display: flex;
+    background: var(--toggle-bg);
+    border-radius: 8px;
+    padding: 4px;
+  }
+
+  .toggle-btn {
+    padding: 8px 20px;
+    border: none;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+    background: transparent;
+    color: var(--text-muted);
+  }
+
+  .toggle-btn.active {
+    background: var(--text);
+    color: var(--bg);
+  }
+
+  .rate-note {
+    font-size: 12px;
+    color: var(--text-muted);
+    display: none;
+  }
+
+  .rate-note.show {
+    display: block;
+  }
+
+  .plans-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 24px;
+    margin-top: 48px;
+  }
+
+  .card {
+    background: var(--card);
+    border: 2px solid var(--border);
+    border-radius: 12px;
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    transition: transform 0.2s, box-shadow 0.2s;
+  }
+
+  .card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 24px rgba(0, 0, 0, 0.1);
+  }
+
+  .card.popular {
+    border-color: var(--popular);
+  }
+
+  .card.best-value {
+    border-color: var(--best-value);
+  }
+
+  .tag {
+    position: absolute;
+    top: -12px;
+    left: 50%;
+    transform: translateX(-50%);
+    padding: 4px 12px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+    color: #fff;
+  }
+
+  .tag.popular {
+    background: var(--popular);
+  }
+
+  .tag.best-value {
+    background: var(--best-value);
+  }
+
+  .plan-name {
+    font-size: 18px;
+    font-weight: 600;
+    text-align: center;
+    margin-bottom: 16px;
+  }
+
+  .price-container {
+    text-align: center;
+    margin-bottom: 24px;
+  }
+
+  .total-price {
+    font-size: 36px;
+    font-weight: 700;
+  }
+
+  .monthly-price {
+    font-size: 14px;
+    color: var(--text-muted);
+    margin-top: 4px;
+  }
+
+  .features {
+    list-style: none;
+    margin-bottom: 24px;
+    flex: 1;
+  }
+
+  .features li {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 0;
+    font-size: 14px;
+    border-bottom: 1px solid var(--toggle-bg);
+  }
+
+  .features li:last-child {
+    border-bottom: none;
+  }
+
+  .features li::before {
+    content: '✓';
+    color: var(--best-value);
+    font-weight: 600;
+  }
+
+  .bonus {
+    background: rgba(5, 150, 105, 0.1);
+    border: 1px solid rgba(5, 150, 105, 0.3);
+    border-radius: 8px;
+    padding: 12px;
+    font-size: 13px;
+    color: var(--best-value);
+    text-align: center;
+    margin-bottom: 16px;
+  }
+
+  .select-btn {
+    width: 100%;
+    padding: 14px 24px;
+    border: 2px solid var(--text);
+    border-radius: 8px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    background: transparent;
+    color: var(--text);
+  }
+
+  .select-btn:hover {
+    background: var(--text);
+    color: var(--bg);
+  }
+
+  .select-btn.primary {
+    background: var(--text);
+    color: var(--bg);
+    border: none;
+  }
+
+  .select-btn.primary:hover {
+    opacity: 0.8;
+  }
+
+  .table-section {
+    margin-top: 64px;
+  }
+
+  .table-title {
+    font-size: 24px;
+    font-weight: 600;
+    text-align: center;
+    margin-bottom: 24px;
+  }
+
+  .table-wrapper {
+    overflow-x: auto;
+  }
+
+  table {
+    width: 100%;
+    min-width: 600px;
+    border-collapse: collapse;
+    background: var(--card);
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  }
+
+  thead {
+    background: var(--text);
+    color: var(--bg);
+  }
+
+  th {
+    padding: 16px;
+    font-size: 14px;
+    font-weight: 600;
+    text-align: center;
+  }
+
+  th:first-child {
+    text-align: left;
+  }
+
+  td {
+    padding: 12px 16px;
+    font-size: 14px;
+    text-align: center;
+    border-bottom: 1px solid var(--border);
+  }
+
+  td:first-child {
+    text-align: left;
+    font-weight: 500;
+    color: var(--text);
+  }
+
+  tr:nth-child(even) {
+    background: var(--bg);
+  }
+
+  .badge {
+    display: inline-block;
+    padding: 2px 8px;
+    background: rgba(0, 112, 243, 0.1);
+    color: var(--accent);
+    border-radius: 4px;
+    font-size: 11px;
+    font-weight: 600;
+    margin-left: 8px;
+  }
+</style>
+
+<header>
+  <div class="logo">Verce<span>I</span></div>
+  <a href="#" class="login">Login</a>
+</header>
+
+<main>
+  <section class="hero">
+    <h1>Choose Your Hosting Plan</h1>
+    <p class="subtitle">Simple, transparent pricing. No hidden fees.</p>
+    <div class="toggle-wrapper">
+      <div class="toggle">
+        <button class="toggle-btn active" onclick="setCurrency('USD')">USD</button>
+        <button class="toggle-btn" onclick="setCurrency('NGN')">NGN</button>
+      </div>
+      <span class="rate-note" id="rate-note">Prices shown at ₦1,400/USD</span>
+    </div>
+  </section>
+
+  <div class="plans-grid">
+    <div class="card">
+      <h3 class="plan-name">6 Months</h3>
+      <div class="price-container">
+        <div class="total-price" data-usd="120" data-ngn="168000">$120</div>
+        <div class="monthly-price" data-usd="20" data-ngn="28000">$20/month</div>
+      </div>
+      <ul class="features">
+        <li>Project: 1 site</li>
+        <li>Storage: 5 GB</li>
+        <li>Custom Domains: 1</li>
+        <li>Bandwidth: 100 GB/mo</li>
+        <li>Build Minutes: 300/mo</li>
+      </ul>
+      <button class="select-btn">Select Plan</button>
+    </div>
+
+    <div class="card popular">
+      <span class="tag popular">Popular</span>
+      <h3 class="plan-name">12 Months</h3>
+      <div class="price-container">
+        <div class="total-price" data-usd="192" data-ngn="268800">$192</div>
+        <div class="monthly-price" data-usd="16" data-ngn="22400">$16/month</div>
+      </div>
+      <ul class="features">
+        <li>Project: 1 site</li>
+        <li>Storage: 10 GB</li>
+        <li>Custom Domains: 3</li>
+        <li>Bandwidth: 500 GB/mo</li>
+        <li>Build Minutes: 1,000/mo</li>
+      </ul>
+      <div class="bonus">Free migration from other hosts</div>
+      <button class="select-btn primary">Select Plan</button>
+    </div>
+
+    <div class="card best-value">
+      <span class="tag best-value">Best Value</span>
+      <h3 class="plan-name">24 Months</h3>
+      <div class="price-container">
+        <div class="total-price" data-usd="336" data-ngn="470400">$336</div>
+        <div class="monthly-price" data-usd="14" data-ngn="19600">$14/month</div>
+      </div>
+      <ul class="features">
+        <li>Project: 1 site</li>
+        <li>Storage: 20 GB</li>
+        <li>Custom Domains: 5</li>
+        <li>Bandwidth: 1 TB/mo</li>
+        <li>Build Minutes: 3,000/mo</li>
+      </ul>
+      <div class="bonus">1 hour onboarding call + custom subdomain</div>
+      <button class="select-btn">Select Plan</button>
+    </div>
+  </div>
+
+  <section class="table-section">
+    <h2 class="table-title">Full Feature Comparison</h2>
+    <div class="table-wrapper">
+      <table>
+        <thead>
+          <tr>
+            <th>Feature</th>
+            <th>6 Months</th>
+            <th>12 Months</th>
+            <th>24 Months</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>Project</td><td>1 site</td><td>1 site</td><td>1 site</td></tr>
+          <tr><td>Storage</td><td>5 GB</td><td>10 GB</td><td>20 GB</td></tr>
+          <tr><td>Custom Domains</td><td>1</td><td>3</td><td>5</td></tr>
+          <tr><td>Bandwidth</td><td>100 GB/mo</td><td>500 GB/mo</td><td>1 TB/mo</td></tr>
+          <tr><td>Build Minutes</td><td>300/mo</td><td>1,000/mo</td><td>3,000/mo</td></tr>
+          <tr><td>Team Members</td><td>1</td><td>3</td><td>10</td></tr>
+          <tr><td>Support</td><td>Email (48hr)</td><td>Email (24hr)</td><td>Priority (4hr)</td></tr>
+          <tr><td>SSL Certificates</td><td>Shared</td><td>Free dedicated</td><td>Free dedicated</td></tr>
+          <tr><td>Deployment Rollbacks</td><td>3 days</td><td>14 days</td><td>30 days</td></tr>
+          <tr><td>Analytics</td><td>Basic</td><td>Advanced</td><td>Advanced + API</td></tr>
+          <tr><td>Preview Deployments</td><td>3 active</td><td>10 active</td><td>Unlimited</td></tr>
+          <tr><td>Serverless Functions</td><td>10k inv/mo</td><td>100k inv/mo</td><td>500k inv/mo</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+</main>
+
+<script>
+  let currentCurrency = 'USD';
+
+  function setCurrency(currency) {
+    currentCurrency = currency;
+    const buttons = document.querySelectorAll('.toggle-btn');
+    buttons.forEach(btn => btn.classList.remove('active'));
+    event.target.classList.add('active');
+
+    const rateNote = document.getElementById('rate-note');
+    rateNote.classList.toggle('show', currency === 'NGN');
+
+    document.querySelectorAll('.total-price').forEach(el => {
+      const val = parseInt(el.dataset[currency.toLowerCase()]);
+      el.textContent = currency === 'USD' ? `$${val.toLocaleString()}` : `₦${val.toLocaleString()}`;
+    });
+
+    document.querySelectorAll('.monthly-price').forEach(el => {
+      const val = parseInt(el.dataset[currency.toLowerCase()]);
+      el.textContent = currency === 'USD' ? `$${val.toLocaleString()}/month` : `₦${val.toLocaleString()}/month`;
+    });
+  }
+</script>

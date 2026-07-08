@@ -1,5 +1,5 @@
-import { Plan } from './plans';
-import { Currency, convertToNGN } from './currency';
+import { Plan, BillingPeriod, calculateTotal } from './plans';
+import { convertToNGN } from './currency';
 
 export interface PaystackInitResponse {
   authorization_url: string;
@@ -13,7 +13,8 @@ export function generateReference(): string {
   return `vercei_${timestamp}_${random}`;
 }
 
-export function getAmountInKobo(plan: Plan, currency: Currency): number {
-  const amountInNGN = currency === 'NGN' ? convertToNGN(plan.priceUSD) : convertToNGN(plan.priceUSD);
+export function getAmountInKobo(plan: Plan, billingPeriod: BillingPeriod): number {
+  const totalUSD = calculateTotal(plan, billingPeriod);
+  const amountInNGN = convertToNGN(totalUSD);
   return Math.round(amountInNGN * 100);
 }

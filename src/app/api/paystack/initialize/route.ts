@@ -1,15 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getPlanById } from '@/lib/plans';
+import { getPlanById, getBillingPeriod, BillingPeriod } from '@/lib/plans';
 import { generateReference, getAmountInKobo } from '@/lib/paystack';
-import { Currency } from '@/lib/currency';
 
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { email, planId, currency } = body as {
+    const { email, planId, billingPeriod } = body as {
       email: string;
       planId: string;
-      currency: Currency;
+      billingPeriod: BillingPeriod;
     };
 
     if (!email || !planId) {
@@ -27,8 +26,9 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    const period = getBillingPeriod(billingPeriod || '24-months');
     const reference = generateReference();
-    const amount = getAmountInKobo(plan, currency || 'NGN');
+    const amount = getAmountInKobo(plan, billingPeriod || '24-months');
     const callbackUrl = `${process.env.NEXT_PUBLIC_APP_URL}/success`;
 
     const response = await fetch('https://api.paystack.co/transaction/initialize', {
@@ -46,7 +46,8 @@ export async function POST(request: NextRequest) {
         metadata: {
           plan_id: plan.id,
           plan_name: plan.name,
-          duration_months: plan.duration,
+          billing_period: billingPeriod,
+          duration_months: period?.months,
         },
       }),
     });

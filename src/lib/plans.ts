@@ -1,48 +1,65 @@
-export interface PlanFeature {
-  name: string;
-  values: [string, string, string];
+export type BillingPeriod = '6-months' | '12-months' | '24-months';
+
+export interface PlanPricing {
+  '6-months': number;
+  '12-months': number;
+  '24-months': number;
 }
 
 export interface Plan {
   id: string;
   name: string;
-  duration: number;
-  priceUSD: number;
-  pricePerMonth: number;
+  pricing: PlanPricing;
   tag?: 'popular' | 'best-value';
   bonus?: string;
 }
 
+export interface PlanFeature {
+  name: string;
+  values: [string, string, string];
+}
+
+export const billingPeriods: { id: BillingPeriod; label: string; months: number }[] = [
+  { id: '6-months', label: '6 Months', months: 6 },
+  { id: '12-months', label: 'Yearly', months: 12 },
+  { id: '24-months', label: 'Bi-Yearly', months: 24 },
+];
+
 export const plans: Plan[] = [
   {
-    id: '6-months',
-    name: '6 Months',
-    duration: 6,
-    priceUSD: 120,
-    pricePerMonth: 20,
+    id: 'basic',
+    name: 'Basic',
+    pricing: {
+      '6-months': 10,
+      '12-months': 7,
+      '24-months': 4,
+    },
   },
   {
-    id: '12-months',
-    name: '12 Months',
-    duration: 12,
-    priceUSD: 192,
-    pricePerMonth: 16,
+    id: 'standard',
+    name: 'Standard',
+    pricing: {
+      '6-months': 14,
+      '12-months': 8,
+      '24-months': 5,
+    },
     tag: 'popular',
     bonus: 'Free migration from other hosts',
   },
   {
-    id: '24-months',
-    name: '24 Months',
-    duration: 24,
-    priceUSD: 336,
-    pricePerMonth: 14,
+    id: 'premium',
+    name: 'Premium',
+    pricing: {
+      '6-months': 20,
+      '12-months': 11,
+      '24-months': 8,
+    },
     tag: 'best-value',
     bonus: '1 hour onboarding call + custom subdomain',
   },
 ];
 
 export const features: PlanFeature[] = [
-  { name: 'Project', values: ['1 site', '1 site', '1 site'] },
   { name: 'Storage', values: ['5 GB', '10 GB', '20 GB'] },
   { name: 'Custom Domains', values: ['1', '3', '5'] },
   { name: 'Bandwidth', values: ['100 GB/mo', '500 GB/mo', '1 TB/mo'] },
@@ -58,4 +75,14 @@ export const features: PlanFeature[] = [
 
 export function getPlanById(id: string): Plan | undefined {
   return plans.find((plan) => plan.id === id);
+}
+
+export function getBillingPeriod(id: BillingPeriod) {
+  return billingPeriods.find((bp) => bp.id === id);
+}
+
+export function calculateTotal(plan: Plan, billingPeriod: BillingPeriod): number {
+  const period = getBillingPeriod(billingPeriod);
+  if (!period) return 0;
+  return plan.pricing[billingPeriod] * period.months;
 }

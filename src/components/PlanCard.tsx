@@ -1,7 +1,7 @@
 'use client';
 
 import styled from 'styled-components';
-import { Plan, features } from '@/lib/plans';
+import { Plan, BillingPeriod, features, calculateTotal, getBillingPeriod } from '@/lib/plans';
 import { Currency, formatPrice } from '@/lib/currency';
 
 const Card = styled.div<{ $tag?: string }>`
@@ -49,13 +49,13 @@ const PriceContainer = styled.div`
   margin-bottom: 24px;
 `;
 
-const TotalPrice = styled.div`
+const MonthlyPrice = styled.div`
   font-size: 36px;
   font-weight: 700;
   color: #000000;
 `;
 
-const MonthlyPrice = styled.div`
+const TotalPrice = styled.div`
   font-size: 14px;
   color: #666666;
   margin-top: 4px;
@@ -120,15 +120,20 @@ const SelectButton = styled.button<{ $primary?: boolean }>`
 interface PlanCardProps {
   plan: Plan;
   planIndex: number;
+  billingPeriod: BillingPeriod;
   currency: Currency;
   onSelect: (plan: Plan) => void;
 }
 
-export default function PlanCard({ plan, planIndex, currency, onSelect }: PlanCardProps) {
+export default function PlanCard({ plan, planIndex, billingPeriod, currency, onSelect }: PlanCardProps) {
   const displayFeatures = features.slice(0, 5).map((feature) => ({
     name: feature.name,
     value: feature.values[planIndex],
   }));
+
+  const monthlyPrice = plan.pricing[billingPeriod];
+  const totalPrice = calculateTotal(plan, billingPeriod);
+  const period = getBillingPeriod(billingPeriod);
 
   return (
     <Card $tag={plan.tag}>
@@ -139,8 +144,8 @@ export default function PlanCard({ plan, planIndex, currency, onSelect }: PlanCa
       )}
       <PlanName>{plan.name}</PlanName>
       <PriceContainer>
-        <TotalPrice>{formatPrice(plan.priceUSD, currency)}</TotalPrice>
-        <MonthlyPrice>{formatPrice(plan.pricePerMonth, currency)}/month</MonthlyPrice>
+        <MonthlyPrice>{formatPrice(monthlyPrice, currency)}/mo</MonthlyPrice>
+        <TotalPrice>{formatPrice(totalPrice, currency)} for {period?.months} months</TotalPrice>
       </PriceContainer>
       <FeatureList>
         {displayFeatures.map((feature) => (
