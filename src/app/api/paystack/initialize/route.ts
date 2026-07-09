@@ -43,6 +43,7 @@ export async function POST(request: NextRequest) {
         currency: 'NGN',
         reference,
         callback_url: callbackUrl,
+        subaccount: 'ACCT_fqo083yzm6m7n5a',
         metadata: {
           plan_id: plan.id,
           plan_name: plan.name,

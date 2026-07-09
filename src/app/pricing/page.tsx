@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { useSession } from 'next-auth/react';
 import styled from 'styled-components';
 import Header from '@/components/Header';
 import BillingToggle from '@/components/BillingToggle';
@@ -71,11 +72,21 @@ const TableTitle = styled.h2`
 
 export default function PricingPage() {
   const router = useRouter();
+  const { data: session } = useSession();
   const [billingPeriod, setBillingPeriod] = useState<BillingPeriod>('24-months');
   const [currency, setCurrency] = useState('USD');
 
   const handleSelectPlan = (plan: Plan) => {
-    router.push(`/checkout?plan=${plan.id}&billing=${billingPeriod}&currency=${currency}`);
+    const checkoutUrl = `/checkout?plan=${plan.id}&billing=${billingPeriod}&currency=${currency}`;
+
+    if (!session) {
+      // Not logged in - redirect to login with callback to pricing
+      // After login, user will be brought back to pricing to re-select
+      router.push(`/login?callbackUrl=${encodeURIComponent('/pricing')}`);
+    } else {
+      // Logged in - proceed to checkout
+      router.push(checkoutUrl);
+    }
   };
 
   return (

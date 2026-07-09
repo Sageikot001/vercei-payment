@@ -1,7 +1,8 @@
 'use client';
 
 import { Suspense, useState, useEffect } from 'react';
-import { useSearchParams } from 'next/navigation';
+import { useSearchParams, useRouter } from 'next/navigation';
+import { useSession } from 'next-auth/react';
 import styled from 'styled-components';
 import Header from '@/components/Header';
 import { getPlanById, getBillingPeriod, calculateTotal, features, Plan, BillingPeriod } from '@/lib/plans';
@@ -92,37 +93,31 @@ const FormSection = styled.div`
   padding: 24px;
 `;
 
-const Label = styled.label`
-  display: block;
-  font-size: 14px;
-  font-weight: 500;
-  color: #333333;
-  margin-bottom: 8px;
+const UserInfo = styled.div`
+  background: #f5f5f5;
+  padding: 16px;
+  border-radius: 8px;
+  margin-bottom: 16px;
 `;
 
-const Input = styled.input`
-  width: 100%;
-  padding: 12px 16px;
-  border: 2px solid #eaeaea;
-  border-radius: 8px;
+const UserLabel = styled.p`
+  font-size: 12px;
+  color: #666666;
+  margin: 0 0 4px 0;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+`;
+
+const UserEmail = styled.p`
   font-size: 16px;
-  transition: border-color 0.2s;
-  box-sizing: border-box;
-
-  &:focus {
-    outline: none;
-    border-color: #000000;
-  }
-
-  &::placeholder {
-    color: #999999;
-  }
+  color: #000000;
+  margin: 0;
+  font-weight: 500;
 `;
 
 const PayButton = styled.button`
   width: 100%;
   padding: 16px;
-  margin-top: 24px;
   background: #000000;
   color: #ffffff;
   border: none;
@@ -155,7 +150,8 @@ const SecurityBadge = styled.div`
 const ErrorMessage = styled.p`
   color: #ee0000;
   font-size: 14px;
-  margin-top: 8px;
+  margin-bottom: 16px;
+  text-align: center;
 `;
 
 const BackLink = styled.a`
@@ -173,6 +169,9 @@ const BackLink = styled.a`
 
 function CheckoutContent() {
   const searchParams = useSearchParams();
+  const router = useRouter();
+  const { data: session, status } = useSession();
+
   const planId = searchParams.get('plan');
   const billingParam = searchParams.get('billing') as BillingPeriod | null;
   const currencyParam = searchParams.get('currency');
@@ -180,9 +179,14 @@ function CheckoutContent() {
   const [plan, setPlan] = useState<Plan | null>(null);
   const [billingPeriod, setBillingPeriod] = useState<BillingPeriod>('24-months');
   const [currency, setCurrency] = useState('USD');
-  const [email, setEmail] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+
+  useEffect(() => {
+    if (status === 'unauthenticated') {
+      router.push(`/login?callbackUrl=${encodeURIComponent('/pricing')}`);
+    }
+  }, [status, router]);
 
   useEffect(() => {
     if (planId) {
@@ -208,9 +212,8 @@ function CheckoutContent() {
   const period = getBillingPeriod(billingPeriod);
   const totalPrice = plan ? calculateTotal(plan, billingPeriod) : 0;
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!plan || !email) return;
+  const handleSubmit = async () => {
+    if (!plan || !session?.user?.email) return;
 
     setLoading(true);
     setError('');
@@ -220,7 +223,7 @@ function CheckoutContent() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          email,
+          email: session.user.email,
           planId: plan.id,
           billingPeriod,
           currency,
@@ -239,6 +242,21 @@ function CheckoutContent() {
       setLoading(false);
     }
   };
+
+  if (status === 'loading') {
+    return (
+      <PageWrapper>
+        <Header />
+        <Main>
+          <p>Loading...</p>
+        </Main>
+      </PageWrapper>
+    );
+  }
+
+  if (!session) {
+    return null;
+  }
 
   if (!plan) {
     return (
@@ -277,21 +295,14 @@ function CheckoutContent() {
           </TotalSection>
 
           <FormSection>
-            <form onSubmit={handleSubmit}>
-              <Label htmlFor="email">Email Address</Label>
-              <Input
-                id="email"
-                type="email"
-                placeholder="you@example.com"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-              />
-              {error && <ErrorMessage>{error}</ErrorMessage>}
-              <PayButton type="submit" disabled={loading || !email}>
-                {loading ? 'Redirecting...' : 'Pay with Paystack'}
-              </PayButton>
-            </form>
+            <UserInfo>
+              <UserLabel>Paying as</UserLabel>
+              <UserEmail>{session.user?.email}</UserEmail>
+            </UserInfo>
+            {error && <ErrorMessage>{error}</ErrorMessage>}
+            <PayButton onClick={handleSubmit} disabled={loading}>
+              {loading ? 'Redirecting to Paystack...' : 'Pay with Paystack'}
+            </PayButton>
             <SecurityBadge>🔒 Secured by Paystack</SecurityBadge>
           </FormSection>
         </CheckoutCard>
