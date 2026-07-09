@@ -1,8 +1,9 @@
 import { NextAuthOptions } from 'next-auth';
 import CredentialsProvider from 'next-auth/providers/credentials';
 import bcrypt from 'bcryptjs';
+import fs from 'fs';
+import path from 'path';
 
-// In-memory user store (replace with database in production)
 interface User {
   id: string;
   email: string;
@@ -10,29 +11,53 @@ interface User {
   password: string;
 }
 
-const users: User[] = [];
+const USERS_FILE = path.join(process.cwd(), 'data', 'users.json');
 
-export function getUsers() {
-  return users;
+function ensureDataDir() {
+  const dataDir = path.join(process.cwd(), 'data');
+  if (!fs.existsSync(dataDir)) {
+    fs.mkdirSync(dataDir, { recursive: true });
+  }
+}
+
+function loadUsers(): User[] {
+  ensureDataDir();
+  if (!fs.existsSync(USERS_FILE)) {
+    return [];
+  }
+  try {
+    const data = fs.readFileSync(USERS_FILE, 'utf-8');
+    return JSON.parse(data);
+  } catch {
+    return [];
+  }
+}
+
+function saveUsers(users: User[]) {
+  ensureDataDir();
+  fs.writeFileSync(USERS_FILE, JSON.stringify(users, null, 2));
 }
 
 export async function createUser(email: string, name: string, password: string): Promise<User | null> {
-  const exists = users.find(u => u.email === email);
+  const users = loadUsers();
+  const exists = users.find(u => u.email.toLowerCase() === email.toLowerCase());
   if (exists) return null;
 
   const hashedPassword = await bcrypt.hash(password, 10);
   const user: User = {
     id: `user_${Date.now()}`,
-    email,
+    email: email.toLowerCase(),
     name,
     password: hashedPassword,
   };
   users.push(user);
+  saveUsers(users);
   return user;
 }
 
 export async function verifyUser(email: string, password: string): Promise<User | null> {
-  const user = users.find(u => u.email === email);
+  const users = loadUsers();
+  const user = users.find(u => u.email.toLowerCase() === email.toLowerCase());
   if (!user) return null;
 
   const valid = await bcrypt.compare(password, user.password);
