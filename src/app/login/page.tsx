@@ -1,12 +1,11 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, Suspense } from 'react';
 import { signIn } from 'next-auth/react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import styled from 'styled-components';
 import Link from 'next/link';
 import Header from '@/components/Header';
-import { Suspense } from 'react';
 
 const PageWrapper = styled.div`
   min-height: 100vh;
@@ -41,6 +40,17 @@ const Form = styled.form`
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
 `;
 
+const SuccessMessage = styled.div`
+  background: #f0fdf4;
+  border: 1px solid #bbf7d0;
+  color: #166534;
+  padding: 12px 16px;
+  border-radius: 8px;
+  margin-bottom: 20px;
+  font-size: 14px;
+  text-align: center;
+`;
+
 const FormGroup = styled.div`
   margin-bottom: 20px;
 `;
@@ -65,6 +75,44 @@ const Input = styled.input`
   &:focus {
     outline: none;
     border-color: #000000;
+  }
+`;
+
+const PasswordWrapper = styled.div`
+  position: relative;
+`;
+
+const PasswordInput = styled.input`
+  width: 100%;
+  padding: 12px 48px 12px 16px;
+  border: 2px solid #eaeaea;
+  border-radius: 8px;
+  font-size: 16px;
+  transition: border-color 0.2s;
+  box-sizing: border-box;
+
+  &:focus {
+    outline: none;
+    border-color: #000000;
+  }
+`;
+
+const ToggleButton = styled.button`
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #666666;
+
+  &:hover {
+    color: #000000;
   }
 `;
 
@@ -114,13 +162,32 @@ const RegisterLink = styled.p`
   }
 `;
 
+function EyeIcon({ open }: { open: boolean }) {
+  if (open) {
+    return (
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+        <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+        <circle cx="12" cy="12" r="3" />
+      </svg>
+    );
+  }
+  return (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+      <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24" />
+      <line x1="1" y1="1" x2="23" y2="23" />
+    </svg>
+  );
+}
+
 function LoginContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const callbackUrl = searchParams.get('callbackUrl') || '/dashboard';
+  const justRegistered = searchParams.get('registered') === 'true';
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
@@ -150,6 +217,11 @@ function LoginContent() {
         <Title>Welcome back</Title>
         <Subtitle>Sign in to your VerceI account</Subtitle>
         <Form onSubmit={handleSubmit}>
+          {justRegistered && (
+            <SuccessMessage>
+              Account created successfully! Please sign in.
+            </SuccessMessage>
+          )}
           <FormGroup>
             <Label htmlFor="email">Email</Label>
             <Input
@@ -163,14 +235,23 @@ function LoginContent() {
           </FormGroup>
           <FormGroup>
             <Label htmlFor="password">Password</Label>
-            <Input
-              id="password"
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              placeholder="••••••••"
-              required
-            />
+            <PasswordWrapper>
+              <PasswordInput
+                id="password"
+                type={showPassword ? 'text' : 'password'}
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="••••••••"
+                required
+              />
+              <ToggleButton
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                aria-label={showPassword ? 'Hide password' : 'Show password'}
+              >
+                <EyeIcon open={showPassword} />
+              </ToggleButton>
+            </PasswordWrapper>
           </FormGroup>
           <Button type="submit" disabled={loading}>
             {loading ? 'Signing in...' : 'Sign In'}
