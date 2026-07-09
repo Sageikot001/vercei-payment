@@ -20,10 +20,6 @@ const Logo = styled(Link)`
   color: #000000;
   text-decoration: none;
   letter-spacing: -0.5px;
-
-  span {
-    color: #0070f3;
-  }
 `;
 
 const RightSection = styled.div`
@@ -91,9 +87,7 @@ export default function Header({ currency, onCurrencyChange }: HeaderProps) {
 
   return (
     <HeaderWrapper>
-      <Logo href="/">
-        Verce<span>I</span>
-      </Logo>
+      <Logo href="/">VerceI</Logo>
       <RightSection>
         {currency && onCurrencyChange && (
           <CurrencySelector currency={currency} onSelect={onCurrencyChange} />

@@ -207,10 +207,6 @@ const FooterText = styled.p`
 const FooterLogo = styled.span`
   font-weight: 600;
   color: #000000;
-
-  span {
-    color: #0070f3;
-  }
 `;
 
 export default function LandingPage() {
@@ -298,7 +294,7 @@ export default function LandingPage() {
 
       <Footer>
         <FooterText>
-          © 2024 <FooterLogo>Verce<span>I</span></FooterLogo>. All rights reserved.
+          © 2024 <FooterLogo>VerceI</FooterLogo>. All rights reserved.
         </FooterText>
       </Footer>
     </PageWrapper>
