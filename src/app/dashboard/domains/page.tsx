@@ -4,6 +4,7 @@ import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import styled from 'styled-components';
+import { Icons } from '@/components/icons';
 import DashboardLayout from '@/components/dashboard/DashboardLayout';
 
 const PageHeader = styled.div`
@@ -65,7 +66,7 @@ const DomainIcon = styled.div`
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 20px;
+  color: #666666;
 `;
 
 const DomainInfo = styled.div`
@@ -133,12 +134,12 @@ const EmptyState = styled.div`
 `;
 
 const EmptyIcon = styled.div`
-  font-size: 64px;
+  color: #cccccc; display: flex; justify-content: center; svg { width: 64px; height: 64px; }
   margin-bottom: 24px;
 `;
 
 const EmptyTitle = styled.h2`
-  font-size: 20px;
+  color: #666666;
   font-weight: 600;
   color: #000000;
   margin: 0 0 8px 0;
@@ -196,13 +197,13 @@ export default function DomainsPage() {
       <PageHeader>
         <Title>Domains</Title>
         <AddButton onClick={() => setShowMock(!showMock)}>
-          {showMock ? '✕ Clear Demo' : '➕ Show Demo'}
+          {showMock ? 'Clear Demo' : 'Show Demo'}
         </AddButton>
       </PageHeader>
 
       {domains.length === 0 ? (
         <EmptyState>
-          <EmptyIcon>🌐</EmptyIcon>
+          <EmptyIcon>{Icons.globe}</EmptyIcon>
           <EmptyTitle>No domains configured</EmptyTitle>
           <EmptyText>Connect a custom domain to your projects</EmptyText>
           <AddButton onClick={() => setShowMock(true)}>Show Demo Domains</AddButton>
@@ -211,13 +212,13 @@ export default function DomainsPage() {
         <DomainList>
           {domains.map((domain) => (
             <DomainItem key={domain.id}>
-              <DomainIcon>🌐</DomainIcon>
+              <DomainIcon>{Icons.globe}</DomainIcon>
               <DomainInfo>
                 <DomainName>{domain.domain}</DomainName>
                 <DomainProject>→ {domain.project}</DomainProject>
               </DomainInfo>
               {domain.ssl && (
-                <SSLBadge>🔒 SSL</SSLBadge>
+                <SSLBadge>{Icons.lock} SSL</SSLBadge>
               )}
               <StatusBadge $status={domain.status}>
                 {domain.status}

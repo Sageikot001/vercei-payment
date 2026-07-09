@@ -6,6 +6,7 @@ import { useEffect } from 'react';
 import styled from 'styled-components';
 import Link from 'next/link';
 import DashboardLayout from '@/components/dashboard/DashboardLayout';
+import { Icons } from '@/components/icons';
 
 const PageHeader = styled.div`
   margin-bottom: 32px;
@@ -54,7 +55,10 @@ const StatHeader = styled.div`
 `;
 
 const StatIcon = styled.span`
-  font-size: 20px;
+  color: #666666;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 `;
 
 const StatTrend = styled.span<{ $positive?: boolean }>`
@@ -110,11 +114,11 @@ const SectionTitle = styled.h2`
 
 const SectionLink = styled(Link)`
   font-size: 13px;
-  color: #0070f3;
+  color: #666666;
   text-decoration: none;
 
   &:hover {
-    text-decoration: underline;
+    color: #000000;
   }
 `;
 
@@ -124,8 +128,15 @@ const EmptyState = styled.div`
 `;
 
 const EmptyIcon = styled.div`
-  font-size: 48px;
+  color: #cccccc;
   margin-bottom: 16px;
+  display: flex;
+  justify-content: center;
+
+  svg {
+    width: 48px;
+    height: 48px;
+  }
 `;
 
 const EmptyTitle = styled.p`
@@ -156,12 +167,6 @@ const EmptyButton = styled(Link)`
   }
 `;
 
-
-
-
-
-
-
 const QuickAction = styled(Link)`
   display: flex;
   align-items: center;
@@ -188,7 +193,7 @@ const QuickActionIcon = styled.div`
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 18px;
+  color: #666666;
 `;
 
 const QuickActionContent = styled.div`
@@ -210,7 +215,6 @@ const QuickActionDesc = styled.p`
 
 const QuickActionArrow = styled.span`
   color: #cccccc;
-  font-size: 18px;
 `;
 
 export default function DashboardPage() {
@@ -239,7 +243,7 @@ export default function DashboardPage() {
       <StatsGrid>
         <StatCard>
           <StatHeader>
-            <StatIcon>📁</StatIcon>
+            <StatIcon>{Icons.projects}</StatIcon>
             <StatTrend>—</StatTrend>
           </StatHeader>
           <StatValue>0</StatValue>
@@ -247,7 +251,7 @@ export default function DashboardPage() {
         </StatCard>
         <StatCard>
           <StatHeader>
-            <StatIcon>🚀</StatIcon>
+            <StatIcon>{Icons.deployments}</StatIcon>
             <StatTrend>—</StatTrend>
           </StatHeader>
           <StatValue>0</StatValue>
@@ -255,7 +259,7 @@ export default function DashboardPage() {
         </StatCard>
         <StatCard>
           <StatHeader>
-            <StatIcon>📊</StatIcon>
+            <StatIcon>{Icons.visitors}</StatIcon>
             <StatTrend $positive>—</StatTrend>
           </StatHeader>
           <StatValue>0</StatValue>
@@ -263,7 +267,7 @@ export default function DashboardPage() {
         </StatCard>
         <StatCard>
           <StatHeader>
-            <StatIcon>💾</StatIcon>
+            <StatIcon>{Icons.storage}</StatIcon>
             <StatTrend>0%</StatTrend>
           </StatHeader>
           <StatValue>0 GB</StatValue>
@@ -278,7 +282,7 @@ export default function DashboardPage() {
             <SectionLink href="/dashboard/deployments">View all</SectionLink>
           </SectionHeader>
           <EmptyState>
-            <EmptyIcon>📭</EmptyIcon>
+            <EmptyIcon>{Icons.inbox}</EmptyIcon>
             <EmptyTitle>No activity yet</EmptyTitle>
             <EmptyText>Deploy your first project to see activity here</EmptyText>
             <EmptyButton href="/dashboard/projects">Create Project</EmptyButton>
@@ -290,28 +294,28 @@ export default function DashboardPage() {
             <SectionTitle>Quick Actions</SectionTitle>
           </SectionHeader>
           <QuickAction href="/dashboard/projects">
-            <QuickActionIcon>➕</QuickActionIcon>
+            <QuickActionIcon>{Icons.plus}</QuickActionIcon>
             <QuickActionContent>
               <QuickActionTitle>New Project</QuickActionTitle>
               <QuickActionDesc>Deploy a new site</QuickActionDesc>
             </QuickActionContent>
-            <QuickActionArrow>→</QuickActionArrow>
+            <QuickActionArrow>{Icons.arrowRight}</QuickActionArrow>
           </QuickAction>
           <QuickAction href="/dashboard/domains">
-            <QuickActionIcon>🌐</QuickActionIcon>
+            <QuickActionIcon>{Icons.globe}</QuickActionIcon>
             <QuickActionContent>
               <QuickActionTitle>Add Domain</QuickActionTitle>
               <QuickActionDesc>Connect a custom domain</QuickActionDesc>
             </QuickActionContent>
-            <QuickActionArrow>→</QuickActionArrow>
+            <QuickActionArrow>{Icons.arrowRight}</QuickActionArrow>
           </QuickAction>
           <QuickAction href="/dashboard/settings">
-            <QuickActionIcon>⚙️</QuickActionIcon>
+            <QuickActionIcon>{Icons.settings}</QuickActionIcon>
             <QuickActionContent>
               <QuickActionTitle>Settings</QuickActionTitle>
               <QuickActionDesc>Manage your account</QuickActionDesc>
             </QuickActionContent>
-            <QuickActionArrow>→</QuickActionArrow>
+            <QuickActionArrow>{Icons.arrowRight}</QuickActionArrow>
           </QuickAction>
         </Section>
       </SectionGrid>

@@ -3,6 +3,7 @@
 import styled from 'styled-components';
 import Link from 'next/link';
 import Header from '@/components/Header';
+import { Icons } from '@/components/icons';
 
 const PageWrapper = styled.div`
   min-height: 100vh;
@@ -136,7 +137,7 @@ const FeatureIcon = styled.div`
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 24px;
+  color: #666666;
   margin-bottom: 20px;
 `;
 
@@ -236,7 +237,7 @@ export default function LandingPage() {
         <SectionSubtitle>Built for developers who value simplicity and performance</SectionSubtitle>
         <FeaturesGrid>
           <FeatureCard>
-            <FeatureIcon>⚡</FeatureIcon>
+            <FeatureIcon>{Icons.zap}</FeatureIcon>
             <FeatureTitle>Instant Deployments</FeatureTitle>
             <FeatureDescription>
               Push to deploy. Your changes go live in seconds with automatic
@@ -244,7 +245,7 @@ export default function LandingPage() {
             </FeatureDescription>
           </FeatureCard>
           <FeatureCard>
-            <FeatureIcon>🔒</FeatureIcon>
+            <FeatureIcon>{Icons.lock}</FeatureIcon>
             <FeatureTitle>Free SSL Certificates</FeatureTitle>
             <FeatureDescription>
               Every deployment comes with automatic HTTPS. Keep your users
@@ -252,7 +253,7 @@ export default function LandingPage() {
             </FeatureDescription>
           </FeatureCard>
           <FeatureCard>
-            <FeatureIcon>🌍</FeatureIcon>
+            <FeatureIcon>{Icons.globe}</FeatureIcon>
             <FeatureTitle>Global CDN</FeatureTitle>
             <FeatureDescription>
               Your content is served from edge locations worldwide.
@@ -260,7 +261,7 @@ export default function LandingPage() {
             </FeatureDescription>
           </FeatureCard>
           <FeatureCard>
-            <FeatureIcon>📊</FeatureIcon>
+            <FeatureIcon>{Icons.barChart}</FeatureIcon>
             <FeatureTitle>Real-time Analytics</FeatureTitle>
             <FeatureDescription>
               Understand your traffic with built-in analytics. No third-party
@@ -268,7 +269,7 @@ export default function LandingPage() {
             </FeatureDescription>
           </FeatureCard>
           <FeatureCard>
-            <FeatureIcon>🔄</FeatureIcon>
+            <FeatureIcon>{Icons.refresh}</FeatureIcon>
             <FeatureTitle>Preview Deployments</FeatureTitle>
             <FeatureDescription>
               Every pull request gets its own preview URL. Review changes
@@ -276,7 +277,7 @@ export default function LandingPage() {
             </FeatureDescription>
           </FeatureCard>
           <FeatureCard>
-            <FeatureIcon>🛠️</FeatureIcon>
+            <FeatureIcon>{Icons.code}</FeatureIcon>
             <FeatureTitle>Serverless Functions</FeatureTitle>
             <FeatureDescription>
               Run backend code without managing servers. Scale automatically

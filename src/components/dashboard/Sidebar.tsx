@@ -3,6 +3,7 @@
 import styled from 'styled-components';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { Icons } from '@/components/icons';
 
 const SidebarWrapper = styled.aside`
   width: 240px;
@@ -53,8 +54,8 @@ const NavItem = styled(Link)<{ $active: boolean }>`
 `;
 
 const NavIcon = styled.span`
-  font-size: 18px;
-  width: 24px;
+  width: 20px;
+  height: 20px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -98,16 +99,16 @@ const UpgradeButton = styled(Link)`
 `;
 
 const mainNav = [
-  { href: '/dashboard', icon: '📊', label: 'Overview' },
-  { href: '/dashboard/projects', icon: '📁', label: 'Projects' },
-  { href: '/dashboard/deployments', icon: '🚀', label: 'Deployments' },
-  { href: '/dashboard/domains', icon: '🌐', label: 'Domains' },
-  { href: '/dashboard/analytics', icon: '📈', label: 'Analytics' },
+  { href: '/dashboard', icon: Icons.overview, label: 'Overview' },
+  { href: '/dashboard/projects', icon: Icons.projects, label: 'Projects' },
+  { href: '/dashboard/deployments', icon: Icons.deployments, label: 'Deployments' },
+  { href: '/dashboard/domains', icon: Icons.domains, label: 'Domains' },
+  { href: '/dashboard/analytics', icon: Icons.analytics, label: 'Analytics' },
 ];
 
 const accountNav = [
-  { href: '/dashboard/settings', icon: '⚙️', label: 'Settings' },
-  { href: '/dashboard/billing', icon: '💳', label: 'Billing' },
+  { href: '/dashboard/settings', icon: Icons.settings, label: 'Settings' },
+  { href: '/dashboard/billing', icon: Icons.billing, label: 'Billing' },
 ];
 
 export default function Sidebar() {

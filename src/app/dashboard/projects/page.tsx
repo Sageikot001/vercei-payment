@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import styled from 'styled-components';
 
+import { Icons } from '@/components/icons';
 import DashboardLayout from '@/components/dashboard/DashboardLayout';
 
 const PageHeader = styled.div`
@@ -92,7 +93,14 @@ const ProjectPreview = styled.div`
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 48px;
+  color: #cccccc;
+  display: flex;
+  justify-content: center;
+
+  svg {
+    width: 48px;
+    height: 48px;
+  }
 `;
 
 const ProjectInfo = styled.div`
@@ -278,7 +286,7 @@ export default function ProjectsPage() {
       <PageHeader>
         <Title>Projects</Title>
         <CreateButton onClick={() => setShowMock(!showMock)}>
-          <span>➕</span>
+          {Icons.plus}
           {showMock ? 'Clear Demo' : 'Show Demo'}
         </CreateButton>
       </PageHeader>
@@ -296,7 +304,7 @@ export default function ProjectsPage() {
 
       {projects.length === 0 ? (
         <EmptyState>
-          <EmptyIcon>📁</EmptyIcon>
+          <EmptyIcon>{Icons.projects}</EmptyIcon>
           <EmptyTitle>No projects yet</EmptyTitle>
           <EmptyText>
             Create your first project to start deploying your websites and applications.
@@ -309,7 +317,7 @@ export default function ProjectsPage() {
         <ProjectsGrid>
           {projects.map((project) => (
             <ProjectCard key={project.id}>
-              <ProjectPreview>🌐</ProjectPreview>
+              <ProjectPreview>{Icons.globe}</ProjectPreview>
               <ProjectInfo>
                 <ProjectHeader>
                   <ProjectName>{project.name}</ProjectName>
@@ -321,8 +329,8 @@ export default function ProjectsPage() {
                   {project.url}
                 </ProjectUrl>
                 <ProjectMeta>
-                  <MetaItem>🕐 {project.lastDeployed}</MetaItem>
-                  <MetaItem>⚡ {project.framework}</MetaItem>
+                  <MetaItem>{project.lastDeployed}</MetaItem>
+                  <MetaItem>{project.framework}</MetaItem>
                 </ProjectMeta>
               </ProjectInfo>
               <ProjectActions>

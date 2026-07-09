@@ -4,6 +4,7 @@ import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import styled from 'styled-components';
+import { Icons } from '@/components/icons';
 import DashboardLayout from '@/components/dashboard/DashboardLayout';
 
 const PageHeader = styled.div`
@@ -140,7 +141,7 @@ const EmptyState = styled.div`
 `;
 
 const EmptyIcon = styled.div`
-  font-size: 64px;
+  color: #cccccc; display: flex; justify-content: center; svg { width: 64px; height: 64px; }
   margin-bottom: 24px;
 `;
 
@@ -232,7 +233,7 @@ export default function DeploymentsPage() {
 
       {deployments.length === 0 ? (
         <EmptyState>
-          <EmptyIcon>🚀</EmptyIcon>
+          <EmptyIcon>{Icons.deployments}</EmptyIcon>
           <EmptyTitle>No deployments yet</EmptyTitle>
           <EmptyText>Your deployment history will appear here</EmptyText>
         </EmptyState>

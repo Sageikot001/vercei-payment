@@ -4,6 +4,7 @@ import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import styled from 'styled-components';
+import { Icons } from '@/components/icons';
 import DashboardLayout from '@/components/dashboard/DashboardLayout';
 
 const PageHeader = styled.div`
@@ -178,7 +179,7 @@ const EmptyState = styled.div`
 `;
 
 const EmptyIcon = styled.div`
-  font-size: 64px;
+  color: #cccccc; display: flex; justify-content: center; svg { width: 64px; height: 64px; }
   margin-bottom: 24px;
 `;
 
@@ -264,7 +265,7 @@ export default function AnalyticsPage() {
 
       {!showMock ? (
         <EmptyState>
-          <EmptyIcon>📈</EmptyIcon>
+          <EmptyIcon>{Icons.analytics}</EmptyIcon>
           <EmptyTitle>No analytics data yet</EmptyTitle>
           <EmptyText>Deploy a project to start seeing analytics</EmptyText>
           <DemoButton onClick={() => setShowMock(true)}>Show Demo Data</DemoButton>
