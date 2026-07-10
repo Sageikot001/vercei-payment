@@ -11,13 +11,15 @@ const PageHeader = styled.div`
   margin-bottom: 32px;
 `;
 
-const BackLink = styled.a`
+const BackLink = styled.button`
   display: inline-flex;
   align-items: center;
   gap: 8px;
   font-size: 14px;
   color: #666666;
-  text-decoration: none;
+  background: none;
+  border: none;
+  padding: 0;
   margin-bottom: 16px;
   cursor: pointer;
 

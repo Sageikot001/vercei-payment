@@ -7,6 +7,7 @@ import styled from 'styled-components';
 import Header from '@/components/Header';
 import { getPlanById, getBillingPeriod, calculateTotal, features, Plan, BillingPeriod } from '@/lib/plans';
 import { formatPrice } from '@/lib/currency';
+import { Icons } from '@/components/icons';
 
 const PageWrapper = styled.div`
   min-height: 100vh;
@@ -303,7 +304,7 @@ function CheckoutContent() {
             <PayButton onClick={handleSubmit} disabled={loading}>
               {loading ? 'Redirecting to Paystack...' : 'Pay with Paystack'}
             </PayButton>
-            <SecurityBadge>🔒 Secured by Paystack</SecurityBadge>
+            <SecurityBadge>{Icons.lock} Secured by Paystack</SecurityBadge>
           </FormSection>
         </CheckoutCard>
         <BackLink href="/pricing">← Back to pricing</BackLink>

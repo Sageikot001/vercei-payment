@@ -77,19 +77,21 @@ const ProjectsGrid = styled.div`
   gap: 20px;
 `;
 
-const ProjectCard = styled(Link)`
-  display: block;
+const ProjectCard = styled.div`
   background: #ffffff;
   border-radius: 12px;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
   overflow: hidden;
   transition: box-shadow 0.2s, transform 0.2s;
-  text-decoration: none;
 
   &:hover {
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
     transform: translateY(-2px);
   }
+`;
+
+const ProjectCardLink = styled.div`
+  cursor: pointer;
 `;
 
 const ProjectPreview = styled.div`
@@ -319,29 +321,41 @@ export default function ProjectsPage() {
       ) : (
         <ProjectsGrid>
           {projects.map((project) => (
-            <ProjectCard key={project.id} href={`/dashboard/projects/${project.name}`}>
-              <ProjectPreview>{Icons.globe}</ProjectPreview>
-              <ProjectInfo>
-                <ProjectHeader>
-                  <ProjectName>{project.name}</ProjectName>
-                  <StatusBadge $status={project.status}>
-                    {project.status}
-                  </StatusBadge>
-                </ProjectHeader>
-                <ProjectUrl as="span">
-                  {project.url}
-                </ProjectUrl>
-                <ProjectMeta>
-                  <MetaItem>{project.lastDeployed}</MetaItem>
-                  <MetaItem>{project.framework}</MetaItem>
-                </ProjectMeta>
-              </ProjectInfo>
+            <ProjectCard key={project.id}>
+              <ProjectCardLink
+                onClick={() => router.push(`/dashboard/projects/${project.name}`)}
+                role="link"
+                tabIndex={0}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    router.push(`/dashboard/projects/${project.name}`);
+                  }
+                }}
+              >
+                <ProjectPreview>{Icons.globe}</ProjectPreview>
+                <ProjectInfo>
+                  <ProjectHeader>
+                    <ProjectName>{project.name}</ProjectName>
+                    <StatusBadge $status={project.status}>
+                      {project.status}
+                    </StatusBadge>
+                  </ProjectHeader>
+                  <ProjectUrl as="span">
+                    {project.url}
+                  </ProjectUrl>
+                  <ProjectMeta>
+                    <MetaItem>{project.lastDeployed}</MetaItem>
+                    <MetaItem>{project.framework}</MetaItem>
+                  </ProjectMeta>
+                </ProjectInfo>
+              </ProjectCardLink>
               <ProjectActions>
-                <ActionButton onClick={(e) => { e.preventDefault(); window.open(`https://${project.url}`, '_blank'); }}>
+                <ActionButton onClick={() => window.open(`https://${project.url}`, '_blank')}>
                   Visit
                 </ActionButton>
-                <ActionButton onClick={(e) => e.preventDefault()}>Redeploy</ActionButton>
-                <ActionButton onClick={(e) => { e.preventDefault(); router.push(`/dashboard/projects/${project.name}/settings`); }}>
+                <ActionButton onClick={() => {}}>Redeploy</ActionButton>
+                <ActionButton onClick={() => router.push(`/dashboard/projects/${project.name}/settings`)}>
                   Settings
                 </ActionButton>
               </ProjectActions>

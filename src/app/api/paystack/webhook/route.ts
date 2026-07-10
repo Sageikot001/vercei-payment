@@ -26,14 +26,19 @@ export async function POST(request: NextRequest) {
         const { reference, customer, amount, currency, metadata } = event.data;
 
         // Find user by email
-        const { data: profile } = await supabase
+        const { data: profile, error: profileError } = await supabase
           .from('profiles')
           .select('id')
           .eq('email', customer.email)
           .single();
 
+        if (profileError && profileError.code !== 'PGRST116') {
+          console.error('Database error during profile lookup, ref:', reference);
+          return NextResponse.json({ error: 'Database error' }, { status: 500 });
+        }
+
         if (!profile) {
-          console.error('User not found for email:', customer.email);
+          console.error('User not found for payment ref:', reference);
           return NextResponse.json({ error: 'User not found' }, { status: 404 });
         }
 
@@ -62,36 +67,47 @@ export async function POST(request: NextRequest) {
           });
 
         if (subscriptionError) {
-          console.error('Error creating subscription:', subscriptionError);
+          console.error('Subscription creation failed, ref:', reference, subscriptionError);
           return NextResponse.json({ error: 'Failed to create subscription' }, { status: 500 });
         }
 
-        console.log('Subscription activated for user:', profile.id);
+        console.log('Subscription activated, user_id:', profile.id, 'ref:', reference);
         break;
       }
 
       case 'subscription.disable':
       case 'subscription.not_renew': {
-        const { customer } = event.data;
+        const { customer, reference } = event.data;
 
-        const { data: profile } = await supabase
+        const { data: profile, error: profileError } = await supabase
           .from('profiles')
           .select('id')
           .eq('email', customer.email)
           .single();
 
+        if (profileError && profileError.code !== 'PGRST116') {
+          console.error('Database error during subscription update, ref:', reference);
+          return NextResponse.json({ error: 'Database error' }, { status: 500 });
+        }
+
         if (profile) {
-          await supabase
+          const { error: updateError } = await supabase
             .from('subscriptions')
             .update({ status: 'cancelled' })
             .eq('user_id', profile.id);
+
+          if (updateError) {
+            console.error('Subscription cancellation failed, user_id:', profile.id, updateError);
+            return NextResponse.json({ error: 'Failed to update subscription' }, { status: 500 });
+          }
+          console.log('Subscription cancelled, user_id:', profile.id);
         }
         break;
       }
 
       case 'charge.failed': {
-        const { customer, metadata } = event.data;
-        console.log('Payment failed for:', customer.email, 'Plan:', metadata?.plan);
+        const { reference, metadata } = event.data;
+        console.log('Payment failed, ref:', reference, 'plan:', metadata?.plan);
         break;
       }
 

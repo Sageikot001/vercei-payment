@@ -2,6 +2,9 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { createAdminClient } from '@/lib/supabase/admin';
+import { formatTimeAgo, formatDuration } from '@/lib/utils/time';
+
+const MAX_LIMIT = 100;
 
 export async function GET(
   request: NextRequest,
@@ -28,8 +31,19 @@ export async function GET(
     const { searchParams } = new URL(request.url);
     const type = searchParams.get('type');
     const branch = searchParams.get('branch');
-    const limit = parseInt(searchParams.get('limit') || '20');
-    const offset = parseInt(searchParams.get('offset') || '0');
+
+    // Validate pagination parameters
+    const limitParam = searchParams.get('limit');
+    const offsetParam = searchParams.get('offset');
+
+    const limit = limitParam ? parseInt(limitParam, 10) : 20;
+    const offset = offsetParam ? parseInt(offsetParam, 10) : 0;
+
+    if (isNaN(limit) || isNaN(offset) || limit < 1 || offset < 0) {
+      return NextResponse.json({ error: 'Invalid pagination parameters' }, { status: 400 });
+    }
+
+    const sanitizedLimit = Math.min(limit, MAX_LIMIT);
 
     let query = supabase
       .from('deployments')
@@ -37,7 +51,7 @@ export async function GET(
       .eq('project_id', params.id)
       .eq('user_id', profile.id)
       .order('created_at', { ascending: false })
-      .range(offset, offset + limit - 1);
+      .range(offset, offset + sanitizedLimit - 1);
 
     if (type && type !== 'all') {
       query = query.eq('type', type);
@@ -96,12 +110,13 @@ export async function POST(
       return NextResponse.json({ error: 'User not found' }, { status: 404 });
     }
 
-    // Verify project ownership
+    // Verify project ownership and not deleted
     const { data: project } = await supabase
       .from('projects')
       .select('id, name')
       .eq('id', params.id)
       .eq('user_id', profile.id)
+      .neq('status', 'deleted')
       .single();
 
     if (!project) {
@@ -138,17 +153,15 @@ export async function POST(
 }
 
 async function simulateBuild(supabase: ReturnType<typeof createAdminClient>, deploymentId: string, projectName: string) {
-  // Update to building
   await supabase
     .from('deployments')
     .update({ status: 'building' })
     .eq('id', deploymentId);
 
-  // Simulate build time (5-15 seconds)
   const buildTime = Math.floor(Math.random() * 10000) + 5000;
 
   setTimeout(async () => {
-    const success = Math.random() > 0.1; // 90% success rate
+    const success = Math.random() > 0.1;
 
     await supabase
       .from('deployments')
@@ -159,25 +172,4 @@ async function simulateBuild(supabase: ReturnType<typeof createAdminClient>, dep
       })
       .eq('id', deploymentId);
   }, buildTime);
-}
-
-function formatTimeAgo(date: Date): string {
-  const now = new Date();
-  const diffMs = now.getTime() - date.getTime();
-  const diffMins = Math.floor(diffMs / 60000);
-  const diffHours = Math.floor(diffMins / 60);
-  const diffDays = Math.floor(diffHours / 24);
-
-  if (diffMins < 1) return 'Just now';
-  if (diffMins < 60) return `${diffMins} min${diffMins > 1 ? 's' : ''} ago`;
-  if (diffHours < 24) return `${diffHours} hour${diffHours > 1 ? 's' : ''} ago`;
-  if (diffDays < 7) return `${diffDays} day${diffDays > 1 ? 's' : ''} ago`;
-  return date.toLocaleDateString();
-}
-
-function formatDuration(seconds: number): string {
-  if (seconds < 60) return `${seconds}s`;
-  const mins = Math.floor(seconds / 60);
-  const secs = seconds % 60;
-  return `${mins}m ${secs}s`;
 }

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { createAdminClient } from '@/lib/supabase/admin';
+import { formatTimeAgo } from '@/lib/utils/time';
 
 export async function GET() {
   try {
@@ -118,8 +119,8 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Failed to create project' }, { status: 500 });
     }
 
-    // Create default domain
-    await supabase.from('domains').insert({
+    // Create default domain and initial deployment atomically
+    const { error: domainError } = await supabase.from('domains').insert({
       project_id: project.id,
       user_id: profile.id,
       domain: `${project.name}.vercei.app`,
@@ -128,8 +129,14 @@ export async function POST(request: NextRequest) {
       ssl_status: 'active',
     });
 
-    // Create initial deployment
-    await supabase.from('deployments').insert({
+    if (domainError) {
+      // Rollback: delete the project
+      await supabase.from('projects').delete().eq('id', project.id);
+      console.error('Error creating domain, rolled back project:', domainError);
+      return NextResponse.json({ error: 'Failed to create project' }, { status: 500 });
+    }
+
+    const { error: deploymentError } = await supabase.from('deployments').insert({
       project_id: project.id,
       user_id: profile.id,
       branch: 'main',
@@ -138,6 +145,14 @@ export async function POST(request: NextRequest) {
       commit_message: 'Initial deployment',
     });
 
+    if (deploymentError) {
+      // Rollback: delete domain and project
+      await supabase.from('domains').delete().eq('project_id', project.id);
+      await supabase.from('projects').delete().eq('id', project.id);
+      console.error('Error creating deployment, rolled back project:', deploymentError);
+      return NextResponse.json({ error: 'Failed to create project' }, { status: 500 });
+    }
+
     return NextResponse.json({ project });
   } catch (error) {
     console.error('Error:', error);
@@ -145,16 +160,3 @@ export async function POST(request: NextRequest) {
   }
 }
 
-function formatTimeAgo(date: Date): string {
-  const now = new Date();
-  const diffMs = now.getTime() - date.getTime();
-  const diffMins = Math.floor(diffMs / 60000);
-  const diffHours = Math.floor(diffMins / 60);
-  const diffDays = Math.floor(diffHours / 24);
-
-  if (diffMins < 1) return 'Just now';
-  if (diffMins < 60) return `${diffMins} min${diffMins > 1 ? 's' : ''} ago`;
-  if (diffHours < 24) return `${diffHours} hour${diffHours > 1 ? 's' : ''} ago`;
-  if (diffDays < 7) return `${diffDays} day${diffDays > 1 ? 's' : ''} ago`;
-  return date.toLocaleDateString();
-}

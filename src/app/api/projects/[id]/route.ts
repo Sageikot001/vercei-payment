@@ -55,6 +55,7 @@ export async function GET(
       `)
       .eq('id', params.id)
       .eq('user_id', profile.id)
+      .neq('status', 'deleted')
       .single();
 
     if (error || !project) {
@@ -106,6 +107,7 @@ export async function PATCH(
       })
       .eq('id', params.id)
       .eq('user_id', profile.id)
+      .neq('status', 'deleted')
       .select()
       .single();
 
