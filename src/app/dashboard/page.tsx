@@ -7,6 +7,7 @@ import styled from 'styled-components';
 import Link from 'next/link';
 import DashboardLayout from '@/components/dashboard/DashboardLayout';
 import { Icons } from '@/components/icons';
+import { useDashboard } from '@/hooks/useDashboard';
 
 const PageHeader = styled.div`
   margin-bottom: 32px;
@@ -217,9 +218,50 @@ const QuickActionArrow = styled.span`
   color: #cccccc;
 `;
 
+const ActivityItem = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px 24px;
+  border-bottom: 1px solid #f5f5f5;
+
+  &:last-child {
+    border-bottom: none;
+  }
+`;
+
+const ActivityDot = styled.div<{ $status: string }>`
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: ${({ $status }) =>
+    $status === 'ready' ? '#22c55e' :
+    $status === 'building' ? '#f59e0b' :
+    $status === 'error' ? '#ef4444' :
+    '#999999'
+  };
+`;
+
+const ActivityInfo = styled.div`
+  flex: 1;
+`;
+
+const ActivityMessage = styled.p`
+  font-size: 14px;
+  color: #000000;
+  margin: 0 0 2px 0;
+`;
+
+const ActivityMeta = styled.p`
+  font-size: 12px;
+  color: #666666;
+  margin: 0;
+`;
+
 export default function DashboardPage() {
   const { data: session, status } = useSession();
   const router = useRouter();
+  const { stats, loading } = useDashboard();
 
   useEffect(() => {
     if (status === 'unauthenticated') {
@@ -246,7 +288,7 @@ export default function DashboardPage() {
             <StatIcon>{Icons.projects}</StatIcon>
             <StatTrend>—</StatTrend>
           </StatHeader>
-          <StatValue>0</StatValue>
+          <StatValue>{loading ? '—' : stats?.projects || 0}</StatValue>
           <StatLabel>Active Projects</StatLabel>
         </StatCard>
         <StatCard>
@@ -254,23 +296,23 @@ export default function DashboardPage() {
             <StatIcon>{Icons.deployments}</StatIcon>
             <StatTrend>—</StatTrend>
           </StatHeader>
-          <StatValue>0</StatValue>
-          <StatLabel>Deployments</StatLabel>
+          <StatValue>{loading ? '—' : stats?.deployments || 0}</StatValue>
+          <StatLabel>Deployments (30d)</StatLabel>
         </StatCard>
         <StatCard>
           <StatHeader>
-            <StatIcon>{Icons.visitors}</StatIcon>
-            <StatTrend $positive>—</StatTrend>
+            <StatIcon>{Icons.globe}</StatIcon>
+            <StatTrend>—</StatTrend>
           </StatHeader>
-          <StatValue>0</StatValue>
-          <StatLabel>Total Visitors</StatLabel>
+          <StatValue>{loading ? '—' : stats?.domains || 0}</StatValue>
+          <StatLabel>Domains</StatLabel>
         </StatCard>
         <StatCard>
           <StatHeader>
             <StatIcon>{Icons.storage}</StatIcon>
             <StatTrend>0%</StatTrend>
           </StatHeader>
-          <StatValue>0 GB</StatValue>
+          <StatValue>{loading ? '—' : `${stats?.storage || 0} GB`}</StatValue>
           <StatLabel>Storage Used</StatLabel>
         </StatCard>
       </StatsGrid>
@@ -281,19 +323,31 @@ export default function DashboardPage() {
             <SectionTitle>Recent Activity</SectionTitle>
             <SectionLink href="/dashboard/deployments">View all</SectionLink>
           </SectionHeader>
-          <EmptyState>
-            <EmptyIcon>{Icons.inbox}</EmptyIcon>
-            <EmptyTitle>No activity yet</EmptyTitle>
-            <EmptyText>Deploy your first project to see activity here</EmptyText>
-            <EmptyButton href="/dashboard/projects">Create Project</EmptyButton>
-          </EmptyState>
+          {!loading && stats?.recentActivity && stats.recentActivity.length > 0 ? (
+            stats.recentActivity.map((activity) => (
+              <ActivityItem key={activity.id}>
+                <ActivityDot $status={activity.status} />
+                <ActivityInfo>
+                  <ActivityMessage>{activity.message}</ActivityMessage>
+                  <ActivityMeta>{activity.project} • {activity.time}</ActivityMeta>
+                </ActivityInfo>
+              </ActivityItem>
+            ))
+          ) : (
+            <EmptyState>
+              <EmptyIcon>{Icons.inbox}</EmptyIcon>
+              <EmptyTitle>No activity yet</EmptyTitle>
+              <EmptyText>Deploy your first project to see activity here</EmptyText>
+              <EmptyButton href="/dashboard/projects/new">Create Project</EmptyButton>
+            </EmptyState>
+          )}
         </Section>
 
         <Section>
           <SectionHeader>
             <SectionTitle>Quick Actions</SectionTitle>
           </SectionHeader>
-          <QuickAction href="/dashboard/projects">
+          <QuickAction href="/dashboard/projects/new">
             <QuickActionIcon>{Icons.plus}</QuickActionIcon>
             <QuickActionContent>
               <QuickActionTitle>New Project</QuickActionTitle>
