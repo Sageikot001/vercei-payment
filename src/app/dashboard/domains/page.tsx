@@ -10,8 +10,8 @@ import DashboardLayout from '@/components/dashboard/DashboardLayout';
 interface Domain {
   id: string;
   domain: string;
-  project_id: string;
-  project_name?: string;
+  project_id: string | null;
+  projects?: { id: string; name: string } | null;
   is_primary: boolean;
   verified: boolean;
   ssl_status: 'pending' | 'active' | 'error';
@@ -627,22 +627,16 @@ export default function DomainsPage() {
 
   const fetchDomains = useCallback(async () => {
     try {
-      const projectsRes = await fetch('/api/projects');
-      const projectsData = await projectsRes.json();
-      setProjects(projectsData.projects || []);
+      const [domainsRes, projectsRes] = await Promise.all([
+        fetch('/api/domains'),
+        fetch('/api/projects'),
+      ]);
 
-      const allDomains: Domain[] = [];
-      for (const project of projectsData.projects || []) {
-        const domainsRes = await fetch(`/api/projects/${project.id}/domains`);
-        const domainsData = await domainsRes.json();
-        if (domainsData.domains) {
-          allDomains.push(...domainsData.domains.map((d: Domain) => ({
-            ...d,
-            project_name: project.name,
-          })));
-        }
-      }
-      setDomains(allDomains);
+      const domainsData = await domainsRes.json();
+      const projectsData = await projectsRes.json();
+
+      setDomains(domainsData.domains || []);
+      setProjects(projectsData.projects || []);
     } catch (error) {
       console.error('Error fetching domains:', error);
     } finally {
@@ -660,16 +654,17 @@ export default function DomainsPage() {
   }, [status, router, fetchDomains]);
 
   const handleAddDomain = async () => {
-    if (!newDomain || !selectedProject) return;
+    if (!newDomain) return;
     setSaving(true);
 
     try {
-      const res = await fetch(`/api/projects/${selectedProject}/domains`, {
+      const res = await fetch('/api/domains', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           domain: newDomain,
-          isPrimary,
+          projectId: selectedProject || null,
+          isPrimary: selectedProject ? isPrimary : false,
         }),
       });
 
@@ -689,7 +684,7 @@ export default function DomainsPage() {
 
   const handleVerifyDomain = async (domain: Domain) => {
     try {
-      const res = await fetch(`/api/projects/${domain.project_id}/domains/${domain.id}`, {
+      const res = await fetch(`/api/domains/${domain.id}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ verify: true }),
@@ -697,6 +692,10 @@ export default function DomainsPage() {
 
       if (res.ok) {
         fetchDomains();
+        if (selectedDomain?.id === domain.id) {
+          const data = await res.json();
+          setSelectedDomain(data.domain);
+        }
       }
     } catch (error) {
       console.error('Error verifying domain:', error);
@@ -707,7 +706,7 @@ export default function DomainsPage() {
     if (!confirm(`Are you sure you want to delete ${domain.domain}?`)) return;
 
     try {
-      const res = await fetch(`/api/projects/${domain.project_id}/domains/${domain.id}`, {
+      const res = await fetch(`/api/domains/${domain.id}`, {
         method: 'DELETE',
       });
 
@@ -718,6 +717,24 @@ export default function DomainsPage() {
       }
     } catch (error) {
       console.error('Error deleting domain:', error);
+    }
+  };
+
+  const handleConnectProject = async (domainId: string, projectId: string | null) => {
+    try {
+      const res = await fetch(`/api/domains/${domainId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(projectId ? { projectId } : { disconnect: true }),
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+        setSelectedDomain(data.domain);
+        fetchDomains();
+      }
+    } catch (error) {
+      console.error('Error updating domain:', error);
     }
   };
 
@@ -803,11 +820,13 @@ export default function DomainsPage() {
                 <DomainInfo>
                   <DomainName>{domain.domain}</DomainName>
                   <DomainMeta>
-                    {domain.is_primary ? 'Primary' : 'Secondary'}
+                    {domain.is_primary ? 'Primary' : domain.project_id ? 'Secondary' : 'Unassigned'}
                   </DomainMeta>
                 </DomainInfo>
               </DomainCell>
-              <span>{domain.project_name}</span>
+              <span style={{ color: domain.projects?.name ? '#000' : '#999' }}>
+                {domain.projects?.name || 'Not connected'}
+              </span>
               <StatusBadge $status={domain.verified ? 'verified' : 'pending'}>
                 {domain.verified ? 'Verified' : 'Pending'}
               </StatusBadge>
@@ -844,12 +863,12 @@ export default function DomainsPage() {
                 />
               </FormGroup>
               <FormGroup>
-                <Label>Project</Label>
+                <Label>Connect to Project (Optional)</Label>
                 <Select
                   value={selectedProject}
                   onChange={(e) => setSelectedProject(e.target.value)}
                 >
-                  <option value="">Select a project</option>
+                  <option value="">No project - connect later</option>
                   {projects.map((project) => (
                     <option key={project.id} value={project.id}>
                       {project.name}
@@ -857,16 +876,18 @@ export default function DomainsPage() {
                   ))}
                 </Select>
               </FormGroup>
-              <FormGroup>
-                <Checkbox>
-                  <input
-                    type="checkbox"
-                    checked={isPrimary}
-                    onChange={(e) => setIsPrimary(e.target.checked)}
-                  />
-                  Set as primary domain
-                </Checkbox>
-              </FormGroup>
+              {selectedProject && (
+                <FormGroup>
+                  <Checkbox>
+                    <input
+                      type="checkbox"
+                      checked={isPrimary}
+                      onChange={(e) => setIsPrimary(e.target.checked)}
+                    />
+                    Set as primary domain for this project
+                  </Checkbox>
+                </FormGroup>
+              )}
             </ModalBody>
             <ModalFooter>
               <CancelButton onClick={() => setShowAddModal(false)}>
@@ -874,7 +895,7 @@ export default function DomainsPage() {
               </CancelButton>
               <SubmitButton
                 onClick={handleAddDomain}
-                disabled={!newDomain || !selectedProject || saving}
+                disabled={!newDomain || saving}
               >
                 {saving ? 'Adding...' : 'Add Domain'}
               </SubmitButton>
@@ -1018,6 +1039,45 @@ export default function DomainsPage() {
                   </AddRecordButton>
                 )}
               </DNSSection>
+
+              <SSLSection>
+                <SSLHeader>
+                  <SSLTitle>
+                    {Icons.projects}
+                    Project Connection
+                  </SSLTitle>
+                  <SSLStatus $active={!!selectedDomain.project_id}>
+                    {selectedDomain.projects?.name || 'Not Connected'}
+                  </SSLStatus>
+                </SSLHeader>
+                <SSLInfo style={{ marginBottom: '12px' }}>
+                  {selectedDomain.project_id
+                    ? `This domain is connected to "${selectedDomain.projects?.name}".`
+                    : 'Connect this domain to a project to serve your application.'}
+                </SSLInfo>
+                {selectedDomain.project_id ? (
+                  <CancelButton onClick={() => handleConnectProject(selectedDomain.id, null)}>
+                    Disconnect from Project
+                  </CancelButton>
+                ) : (
+                  <Select
+                    value=""
+                    onChange={(e) => {
+                      if (e.target.value) {
+                        handleConnectProject(selectedDomain.id, e.target.value);
+                      }
+                    }}
+                    style={{ maxWidth: '300px' }}
+                  >
+                    <option value="">Select a project to connect...</option>
+                    {projects.map((project) => (
+                      <option key={project.id} value={project.id}>
+                        {project.name}
+                      </option>
+                    ))}
+                  </Select>
+                )}
+              </SSLSection>
 
               <SSLSection>
                 <SSLHeader>
