@@ -23,6 +23,16 @@ export async function GET() {
       return NextResponse.json({ error: 'User not found' }, { status: 404 });
     }
 
+    // Check subscription status
+    const { data: subscription } = await supabase
+      .from('subscriptions')
+      .select('id, status, expires_at')
+      .eq('user_id', profile.id)
+      .eq('status', 'active')
+      .single();
+
+    const hasActiveSubscription = subscription && new Date(subscription.expires_at) > new Date();
+
     const { data: domains, error } = await supabase
       .from('domains')
       .select(`
@@ -40,7 +50,7 @@ export async function GET() {
       return NextResponse.json({ error: 'Failed to fetch domains' }, { status: 500 });
     }
 
-    return NextResponse.json({ domains });
+    return NextResponse.json({ domains, canAddDomains: hasActiveSubscription });
   } catch (error) {
     console.error('Error:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
@@ -77,6 +87,29 @@ export async function POST(request: NextRequest) {
 
     if (!profile) {
       return NextResponse.json({ error: 'User not found' }, { status: 404 });
+    }
+
+    // Check for active subscription
+    const { data: subscription } = await supabase
+      .from('subscriptions')
+      .select('id, status, expires_at')
+      .eq('user_id', profile.id)
+      .eq('status', 'active')
+      .single();
+
+    if (!subscription) {
+      return NextResponse.json(
+        { error: 'Active subscription required to add domains' },
+        { status: 403 }
+      );
+    }
+
+    // Check if subscription is expired
+    if (new Date(subscription.expires_at) < new Date()) {
+      return NextResponse.json(
+        { error: 'Your subscription has expired. Please renew to add domains.' },
+        { status: 403 }
+      );
     }
 
     // If project specified, verify ownership

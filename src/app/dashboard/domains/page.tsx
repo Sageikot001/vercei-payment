@@ -609,6 +609,8 @@ export default function DomainsPage() {
   const [showConfigModal, setShowConfigModal] = useState(false);
   const [selectedDomain, setSelectedDomain] = useState<Domain | null>(null);
   const [saving, setSaving] = useState(false);
+  const [canAddDomains, setCanAddDomains] = useState(false);
+  const [addError, setAddError] = useState<string | null>(null);
 
   // Add domain form
   const [newDomain, setNewDomain] = useState('');
@@ -637,6 +639,7 @@ export default function DomainsPage() {
 
       setDomains(domainsData.domains || []);
       setProjects(projectsData.projects || []);
+      setCanAddDomains(domainsData.canAddDomains || false);
     } catch (error) {
       console.error('Error fetching domains:', error);
     } finally {
@@ -656,6 +659,7 @@ export default function DomainsPage() {
   const handleAddDomain = async () => {
     if (!newDomain) return;
     setSaving(true);
+    setAddError(null);
 
     try {
       const res = await fetch('/api/domains', {
@@ -668,15 +672,20 @@ export default function DomainsPage() {
         }),
       });
 
+      const data = await res.json();
+
       if (res.ok) {
         setShowAddModal(false);
         setNewDomain('');
         setSelectedProject('');
         setIsPrimary(false);
         fetchDomains();
+      } else {
+        setAddError(data.error || 'Failed to add domain');
       }
     } catch (error) {
       console.error('Error adding domain:', error);
+      setAddError('An error occurred. Please try again.');
     } finally {
       setSaving(false);
     }
@@ -786,11 +795,34 @@ export default function DomainsPage() {
     <DashboardLayout>
       <PageHeader>
         <Title>Domains</Title>
-        <AddButton onClick={() => setShowAddModal(true)}>
+        <AddButton
+          onClick={() => canAddDomains ? setShowAddModal(true) : router.push('/pricing')}
+          style={{ background: canAddDomains ? '#000000' : '#666666' }}
+        >
           {Icons.plus}
-          Add Domain
+          {canAddDomains ? 'Add Domain' : 'Upgrade to Add Domains'}
         </AddButton>
       </PageHeader>
+
+      {!loading && !canAddDomains && (
+        <div style={{
+          padding: '16px 20px',
+          background: '#fef3c7',
+          border: '1px solid #fcd34d',
+          borderRadius: '8px',
+          marginBottom: '24px',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+        }}>
+          <p style={{ margin: 0, color: '#92400e', fontSize: '14px' }}>
+            An active subscription is required to add custom domains.
+          </p>
+          <ActionButton onClick={() => router.push('/pricing')} style={{ background: '#000', color: '#fff' }}>
+            View Plans
+          </ActionButton>
+        </div>
+      )}
 
       {loading ? (
         <LoadingSpinner>Loading domains...</LoadingSpinner>
@@ -798,10 +830,17 @@ export default function DomainsPage() {
         <EmptyState>
           <EmptyIcon>{Icons.globe}</EmptyIcon>
           <EmptyTitle>No domains configured</EmptyTitle>
-          <EmptyText>Connect a custom domain to your projects</EmptyText>
-          <AddButton onClick={() => setShowAddModal(true)}>
+          <EmptyText>
+            {canAddDomains
+              ? 'Connect a custom domain to your projects'
+              : 'Subscribe to a plan to add custom domains'}
+          </EmptyText>
+          <AddButton
+            onClick={() => canAddDomains ? setShowAddModal(true) : router.push('/pricing')}
+            style={{ background: canAddDomains ? '#000000' : '#666666' }}
+          >
             {Icons.plus}
-            Add Domain
+            {canAddDomains ? 'Add Domain' : 'View Plans'}
           </AddButton>
         </EmptyState>
       ) : (
@@ -853,13 +892,29 @@ export default function DomainsPage() {
               </CloseButton>
             </ModalHeader>
             <ModalBody>
+              {addError && (
+                <div style={{
+                  padding: '12px 16px',
+                  background: '#fee2e2',
+                  border: '1px solid #fecaca',
+                  borderRadius: '8px',
+                  marginBottom: '16px',
+                  color: '#991b1b',
+                  fontSize: '14px',
+                }}>
+                  {addError}
+                </div>
+              )}
               <FormGroup>
                 <Label>Domain Name</Label>
                 <Input
                   type="text"
                   placeholder="example.com"
                   value={newDomain}
-                  onChange={(e) => setNewDomain(e.target.value)}
+                  onChange={(e) => {
+                    setNewDomain(e.target.value);
+                    setAddError(null);
+                  }}
                 />
               </FormGroup>
               <FormGroup>
