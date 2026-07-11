@@ -92,11 +92,10 @@ async function syncUserToSupabase(user: { id: string; email: string; name: strin
         .update({ name: user.name, updated_at: new Date().toISOString() })
         .eq('email', user.email);
     } else {
-      // Create new profile
+      // Create new profile - let Supabase generate the UUID
       await supabase
         .from('profiles')
         .insert({
-          id: user.id,
           email: user.email,
           name: user.name,
         });
