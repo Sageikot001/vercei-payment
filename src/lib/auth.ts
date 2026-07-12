@@ -64,44 +64,53 @@ export async function verifyUser(email: string, password: string): Promise<User 
   return valid ? user : null;
 }
 
-async function syncUserToSupabase(user: { id: string; email: string; name: string }) {
-  try {
-    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-    const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+async function syncUserToSupabase(user: { id: string; email: string; name: string }): Promise<void> {
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
-    if (!supabaseUrl || !supabaseKey) {
-      console.log('Supabase not configured, skipping sync');
-      return;
-    }
+  if (!supabaseUrl || !supabaseKey) {
+    console.log('Supabase not configured, skipping sync');
+    return;
+  }
 
-    // Dynamic import to avoid module issues
-    const { createClient } = await import('@supabase/supabase-js');
-    const supabase = createClient(supabaseUrl, supabaseKey);
+  // Dynamic import to avoid module issues
+  const { createClient } = await import('@supabase/supabase-js');
+  const supabase = createClient(supabaseUrl, supabaseKey);
 
-    // Check if profile exists
-    const { data: existing } = await supabase
+  // Check if profile exists
+  const { data: existing, error: lookupError } = await supabase
+    .from('profiles')
+    .select('id')
+    .eq('email', user.email)
+    .single();
+
+  // PGRST116 = no rows returned (profile doesn't exist yet)
+  if (lookupError && lookupError.code !== 'PGRST116') {
+    throw new Error(`Profile lookup failed: ${lookupError.message}`);
+  }
+
+  if (existing) {
+    // Update existing profile
+    const { error: updateError } = await supabase
       .from('profiles')
-      .select('id')
-      .eq('email', user.email)
-      .single();
+      .update({ name: user.name, updated_at: new Date().toISOString() })
+      .eq('email', user.email);
 
-    if (existing) {
-      // Update existing profile
-      await supabase
-        .from('profiles')
-        .update({ name: user.name, updated_at: new Date().toISOString() })
-        .eq('email', user.email);
-    } else {
-      // Create new profile - let Supabase generate the UUID
-      await supabase
-        .from('profiles')
-        .insert({
-          email: user.email,
-          name: user.name,
-        });
+    if (updateError) {
+      throw new Error(`Profile update failed: ${updateError.message}`);
     }
-  } catch (error) {
-    console.error('Failed to sync user to Supabase:', error);
+  } else {
+    // Create new profile - let Supabase generate the UUID
+    const { error: insertError } = await supabase
+      .from('profiles')
+      .insert({
+        email: user.email,
+        name: user.name,
+      });
+
+    if (insertError) {
+      throw new Error(`Profile creation failed: ${insertError.message}`);
+    }
   }
 }
 
@@ -122,11 +131,16 @@ export const authOptions: NextAuthOptions = {
         if (!user) return null;
 
         // Sync user to Supabase for dashboard data
-        await syncUserToSupabase({
-          id: user.id,
-          email: user.email,
-          name: user.name,
-        });
+        try {
+          await syncUserToSupabase({
+            id: user.id,
+            email: user.email,
+            name: user.name,
+          });
+        } catch (syncError) {
+          console.error('Failed to sync user to Supabase:', syncError);
+          // Continue with login even if sync fails - dashboard will handle missing profile
+        }
 
         return {
           id: user.id,

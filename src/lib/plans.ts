@@ -1,7 +1,6 @@
-export type BillingPeriod = '1-month' | '6-months' | '12-months' | '24-months';
+export type BillingPeriod = '6-months' | '12-months' | '24-months';
 
 export interface PlanPricing {
-  '1-month': number;
   '6-months': number;
   '12-months': number;
   '24-months': number;
@@ -21,7 +20,6 @@ export interface PlanFeature {
 }
 
 export const billingPeriods: { id: BillingPeriod; label: string; months: number }[] = [
-  { id: '1-month', label: '1 Month (Test)', months: 1 },
   { id: '6-months', label: '6 Months', months: 6 },
   { id: '12-months', label: 'Yearly', months: 12 },
   { id: '24-months', label: 'Bi-Yearly', months: 24 },
@@ -32,7 +30,6 @@ export const plans: Plan[] = [
     id: 'basic',
     name: 'Basic',
     pricing: {
-      '1-month': 2,
       '6-months': 10,
       '12-months': 7,
       '24-months': 4,
@@ -42,7 +39,6 @@ export const plans: Plan[] = [
     id: 'standard',
     name: 'Standard',
     pricing: {
-      '1-month': 3,
       '6-months': 14,
       '12-months': 8,
       '24-months': 5,
@@ -54,7 +50,6 @@ export const plans: Plan[] = [
     id: 'premium',
     name: 'Premium',
     pricing: {
-      '1-month': 5,
       '6-months': 20,
       '12-months': 11,
       '24-months': 8,

@@ -39,7 +39,7 @@ export interface Database {
           id: string;
           user_id: string;
           plan: 'basic' | 'standard' | 'premium';
-          billing_period: '1-month' | '6-months' | '12-months' | '24-months';
+          billing_period: '6-months' | '12-months' | '24-months';
           status: 'active' | 'cancelled' | 'expired' | 'pending';
           paystack_reference: string | null;
           paystack_customer_code: string | null;
@@ -54,7 +54,7 @@ export interface Database {
           id?: string;
           user_id: string;
           plan: 'basic' | 'standard' | 'premium';
-          billing_period: '1-month' | '6-months' | '12-months' | '24-months';
+          billing_period: '6-months' | '12-months' | '24-months';
           status?: 'active' | 'cancelled' | 'expired' | 'pending';
           paystack_reference?: string | null;
           paystack_customer_code?: string | null;

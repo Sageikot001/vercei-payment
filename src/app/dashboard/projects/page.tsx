@@ -351,10 +351,12 @@ export default function ProjectsPage() {
                 </ProjectInfo>
               </ProjectCardLink>
               <ProjectActions>
-                <ActionButton onClick={() => window.open(`https://${project.url}`, '_blank')}>
+                <ActionButton onClick={() => window.open(`https://${project.url}`, '_blank', 'noopener,noreferrer')}>
                   Visit
                 </ActionButton>
-                <ActionButton onClick={() => {}}>Redeploy</ActionButton>
+                <ActionButton disabled style={{ opacity: 0.5, cursor: 'not-allowed' }} title="Coming soon">
+                  Redeploy
+                </ActionButton>
                 <ActionButton onClick={() => router.push(`/dashboard/projects/${project.name}/settings`)}>
                   Settings
                 </ActionButton>

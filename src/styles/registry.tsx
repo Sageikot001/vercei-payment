@@ -17,6 +17,12 @@ export default function StyledComponentsRegistry({
     return <>{styles}</>;
   });
 
+  // On the client after hydration, render children directly
+  if (typeof window !== 'undefined') {
+    return <>{children}</>;
+  }
+
+  // On the server, use StyleSheetManager to collect styles
   return (
     <StyleSheetManager sheet={sheet.instance}>
       {children}
