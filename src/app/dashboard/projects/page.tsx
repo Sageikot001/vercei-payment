@@ -4,9 +4,11 @@ import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import styled from 'styled-components';
+import Link from 'next/link';
 
 import { Icons } from '@/components/icons';
 import DashboardLayout from '@/components/dashboard/DashboardLayout';
+import { useProjects } from '@/hooks/useProjects';
 
 const PageHeader = styled.div`
   display: flex;
@@ -28,7 +30,7 @@ const Title = styled.h1`
   margin: 0;
 `;
 
-const CreateButton = styled.button`
+const CreateButton = styled(Link)`
   display: flex;
   align-items: center;
   gap: 8px;
@@ -41,6 +43,7 @@ const CreateButton = styled.button`
   font-weight: 500;
   cursor: pointer;
   transition: background 0.2s;
+  text-decoration: none;
 
   &:hover {
     background: #333333;
@@ -85,6 +88,10 @@ const ProjectCard = styled.div`
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
     transform: translateY(-2px);
   }
+`;
+
+const ProjectCardLink = styled.div`
+  cursor: pointer;
 `;
 
 const ProjectPreview = styled.div`
@@ -235,39 +242,19 @@ const EmptyButton = styled.button`
   }
 `;
 
-// Mock data for demo
-const mockProjects = [
-  {
-    id: '1',
-    name: 'portfolio-site',
-    url: 'portfolio-site.vercei.app',
-    status: 'live',
-    lastDeployed: '2 hours ago',
-    framework: 'Next.js',
-  },
-  {
-    id: '2',
-    name: 'e-commerce-store',
-    url: 'my-store.vercei.app',
-    status: 'live',
-    lastDeployed: '1 day ago',
-    framework: 'React',
-  },
-  {
-    id: '3',
-    name: 'blog-platform',
-    url: 'blog.vercei.app',
-    status: 'building',
-    lastDeployed: '5 mins ago',
-    framework: 'Astro',
-  },
-];
+const LoadingSpinner = styled.div`
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 80px;
+  color: #666666;
+`;
 
 export default function ProjectsPage() {
   const { data: session, status } = useSession();
   const router = useRouter();
   const [view, setView] = useState<'grid' | 'list'>('grid');
-  const [showMock, setShowMock] = useState(false);
+  const { projects, loading, error, refetch } = useProjects();
 
   useEffect(() => {
     if (status === 'unauthenticated') {
@@ -279,15 +266,33 @@ export default function ProjectsPage() {
     return null;
   }
 
-  const projects = showMock ? mockProjects : [];
+  if (loading) {
+    return (
+      <DashboardLayout>
+        <LoadingSpinner>Loading projects...</LoadingSpinner>
+      </DashboardLayout>
+    );
+  }
+
+  if (error) {
+    return (
+      <DashboardLayout>
+        <EmptyState>
+          <EmptyTitle>Error loading projects</EmptyTitle>
+          <EmptyText>{error}</EmptyText>
+          <EmptyButton onClick={() => refetch()}>Retry</EmptyButton>
+        </EmptyState>
+      </DashboardLayout>
+    );
+  }
 
   return (
     <DashboardLayout>
       <PageHeader>
         <Title>Projects</Title>
-        <CreateButton onClick={() => setShowMock(!showMock)}>
+        <CreateButton href="/dashboard/projects/new">
           {Icons.plus}
-          {showMock ? 'Clear Demo' : 'Show Demo'}
+          New Project
         </CreateButton>
       </PageHeader>
 
@@ -309,34 +314,50 @@ export default function ProjectsPage() {
           <EmptyText>
             Create your first project to start deploying your websites and applications.
           </EmptyText>
-          <EmptyButton onClick={() => setShowMock(true)}>
-            Show Demo Projects
+          <EmptyButton onClick={() => router.push('/dashboard/projects/new')}>
+            Create Your First Project
           </EmptyButton>
         </EmptyState>
       ) : (
         <ProjectsGrid>
           {projects.map((project) => (
             <ProjectCard key={project.id}>
-              <ProjectPreview>{Icons.globe}</ProjectPreview>
-              <ProjectInfo>
-                <ProjectHeader>
-                  <ProjectName>{project.name}</ProjectName>
-                  <StatusBadge $status={project.status}>
-                    {project.status}
-                  </StatusBadge>
-                </ProjectHeader>
-                <ProjectUrl href={`https://${project.url}`} target="_blank">
-                  {project.url}
-                </ProjectUrl>
-                <ProjectMeta>
-                  <MetaItem>{project.lastDeployed}</MetaItem>
-                  <MetaItem>{project.framework}</MetaItem>
-                </ProjectMeta>
-              </ProjectInfo>
+              <ProjectCardLink
+                onClick={() => router.push(`/dashboard/projects/${project.name}`)}
+                role="link"
+                tabIndex={0}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    router.push(`/dashboard/projects/${project.name}`);
+                  }
+                }}
+              >
+                <ProjectPreview>{Icons.globe}</ProjectPreview>
+                <ProjectInfo>
+                  <ProjectHeader>
+                    <ProjectName>{project.name}</ProjectName>
+                    <StatusBadge $status={project.status}>
+                      {project.status}
+                    </StatusBadge>
+                  </ProjectHeader>
+                  <ProjectUrl as="span">
+                    {project.url}
+                  </ProjectUrl>
+                  <ProjectMeta>
+                    <MetaItem>{project.lastDeployed}</MetaItem>
+                    <MetaItem>{project.framework}</MetaItem>
+                  </ProjectMeta>
+                </ProjectInfo>
+              </ProjectCardLink>
               <ProjectActions>
-                <ActionButton>Visit</ActionButton>
-                <ActionButton>Redeploy</ActionButton>
-                <ActionButton>Settings</ActionButton>
+                <ActionButton onClick={() => window.open(`https://${project.url}`, '_blank')}>
+                  Visit
+                </ActionButton>
+                <ActionButton onClick={() => {}}>Redeploy</ActionButton>
+                <ActionButton onClick={() => router.push(`/dashboard/projects/${project.name}/settings`)}>
+                  Settings
+                </ActionButton>
               </ProjectActions>
             </ProjectCard>
           ))}

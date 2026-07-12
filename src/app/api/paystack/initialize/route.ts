@@ -29,7 +29,16 @@ export async function POST(request: NextRequest) {
     const period = getBillingPeriod(billingPeriod || '24-months');
     const reference = generateReference();
     const amount = getAmountInKobo(plan, billingPeriod || '24-months');
-    const callbackUrl = `${process.env.NEXT_PUBLIC_APP_URL}/success`;
+
+    // Get base URL from request or environment
+    let baseUrl = process.env.NEXT_PUBLIC_APP_URL;
+    if (!baseUrl && process.env.VERCEL_URL) {
+      baseUrl = `https://${process.env.VERCEL_URL}`;
+    }
+    if (!baseUrl) {
+      baseUrl = request.headers.get('origin') || 'http://localhost:3000';
+    }
+    const callbackUrl = `${baseUrl}/success`;
 
     const response = await fetch('https://api.paystack.co/transaction/initialize', {
       method: 'POST',
@@ -43,7 +52,6 @@ export async function POST(request: NextRequest) {
         currency: 'NGN',
         reference,
         callback_url: callbackUrl,
-        subaccount: 'ACCT_fqo083yzm6m7n5a',
         metadata: {
           plan_id: plan.id,
           plan_name: plan.name,
@@ -65,6 +73,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({
       authorization_url: data.data.authorization_url,
       reference: data.data.reference,
+      amount,
     });
   } catch (error) {
     console.error('Paystack initialization error:', error);

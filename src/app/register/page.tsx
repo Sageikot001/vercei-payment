@@ -86,22 +86,28 @@ const PasswordInput = styled.input`
   }
 `;
 
-const ToggleButton = styled.button`
+const ToggleButton = styled.button.attrs({ type: 'button' })`
   position: absolute;
   right: 12px;
   top: 50%;
   transform: translateY(-50%);
-  background: none;
+  background: transparent;
   border: none;
   cursor: pointer;
-  padding: 4px;
+  padding: 8px;
   display: flex;
   align-items: center;
   justify-content: center;
   color: #666666;
+  z-index: 10;
+  pointer-events: auto;
 
   &:hover {
     color: #000000;
+  }
+
+  &:focus {
+    outline: none;
   }
 `;
 

@@ -9,18 +9,16 @@ export default function StyledComponentsRegistry({
 }: {
   children: React.ReactNode;
 }) {
-  const [styledComponentsStyleSheet] = useState(() => new ServerStyleSheet());
+  const [sheet] = useState(() => new ServerStyleSheet());
 
   useServerInsertedHTML(() => {
-    const styles = styledComponentsStyleSheet.getStyleElement();
-    styledComponentsStyleSheet.instance.clearTag();
+    const styles = sheet.getStyleElement();
+    sheet.instance.clearTag();
     return <>{styles}</>;
   });
 
-  if (typeof window !== 'undefined') return <>{children}</>;
-
   return (
-    <StyleSheetManager sheet={styledComponentsStyleSheet.instance}>
+    <StyleSheetManager sheet={sheet.instance}>
       {children}
     </StyleSheetManager>
   );

@@ -64,6 +64,47 @@ export async function verifyUser(email: string, password: string): Promise<User 
   return valid ? user : null;
 }
 
+async function syncUserToSupabase(user: { id: string; email: string; name: string }) {
+  try {
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+    if (!supabaseUrl || !supabaseKey) {
+      console.log('Supabase not configured, skipping sync');
+      return;
+    }
+
+    // Dynamic import to avoid module issues
+    const { createClient } = await import('@supabase/supabase-js');
+    const supabase = createClient(supabaseUrl, supabaseKey);
+
+    // Check if profile exists
+    const { data: existing } = await supabase
+      .from('profiles')
+      .select('id')
+      .eq('email', user.email)
+      .single();
+
+    if (existing) {
+      // Update existing profile
+      await supabase
+        .from('profiles')
+        .update({ name: user.name, updated_at: new Date().toISOString() })
+        .eq('email', user.email);
+    } else {
+      // Create new profile - let Supabase generate the UUID
+      await supabase
+        .from('profiles')
+        .insert({
+          email: user.email,
+          name: user.name,
+        });
+    }
+  } catch (error) {
+    console.error('Failed to sync user to Supabase:', error);
+  }
+}
+
 export const authOptions: NextAuthOptions = {
   providers: [
     CredentialsProvider({
@@ -80,6 +121,13 @@ export const authOptions: NextAuthOptions = {
         const user = await verifyUser(credentials.email, credentials.password);
         if (!user) return null;
 
+        // Sync user to Supabase for dashboard data
+        await syncUserToSupabase({
+          id: user.id,
+          email: user.email,
+          name: user.name,
+        });
+
         return {
           id: user.id,
           email: user.email,
@@ -90,6 +138,21 @@ export const authOptions: NextAuthOptions = {
   ],
   session: {
     strategy: 'jwt',
+    maxAge: 3 * 24 * 60 * 60, // 3 days
+  },
+  jwt: {
+    maxAge: 3 * 24 * 60 * 60, // 3 days
+  },
+  cookies: {
+    sessionToken: {
+      name: `next-auth.session-token`,
+      options: {
+        httpOnly: true,
+        sameSite: 'lax',
+        path: '/',
+        secure: process.env.NODE_ENV === 'production',
+      },
+    },
   },
   pages: {
     signIn: '/login',
