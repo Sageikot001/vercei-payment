@@ -32,10 +32,6 @@ export async function POST(request: NextRequest) {
 
     // Get base URL from environment (required in production)
     let baseUrl = process.env.NEXT_PUBLIC_APP_URL;
-    if (!baseUrl && process.env.VERCEL_URL) {
-      baseUrl = `https://${process.env.VERCEL_URL}`;
-    }
-    // Only allow Origin fallback in development
     if (!baseUrl) {
       if (process.env.NODE_ENV === 'development') {
         baseUrl = request.headers.get('origin') || 'http://localhost:3000';
