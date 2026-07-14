@@ -15,14 +15,16 @@ export interface Database {
           email: string;
           name: string | null;
           avatar_url: string | null;
+          password_hash: string | null;
           created_at: string;
           updated_at: string;
         };
         Insert: {
-          id: string;
+          id?: string;
           email: string;
           name?: string | null;
           avatar_url?: string | null;
+          password_hash?: string | null;
           created_at?: string;
           updated_at?: string;
         };
@@ -31,6 +33,7 @@ export interface Database {
           email?: string;
           name?: string | null;
           avatar_url?: string | null;
+          password_hash?: string | null;
           updated_at?: string;
         };
       };
