@@ -475,7 +475,7 @@ export default function DashboardPage() {
   const { data: session, status } = useSession();
   const router = useRouter();
   const { stats, loading, error, refetch } = useDashboard();
-  const { subscription, isActive, daysRemaining } = useSubscription();
+  const { subscription, isActive, daysRemaining, loading: subLoading, error: subError, refetch: subRefetch } = useSubscription();
 
   useEffect(() => {
     if (status === 'unauthenticated') {
@@ -492,8 +492,8 @@ export default function DashboardPage() {
   // Calculate subscription status
   const getSubscriptionStatus = () => {
     if (!subscription || subscription.status !== 'active') return 'none';
-    if (daysRemaining !== null && daysRemaining <= 7) return 'expiring';
     if (daysRemaining !== null && daysRemaining <= 0) return 'expired';
+    if (daysRemaining !== null && daysRemaining <= 7) return 'expiring';
     return 'active';
   };
 
@@ -528,7 +528,18 @@ export default function DashboardPage() {
         <Subtitle>Here&apos;s what&apos;s happening with your projects</Subtitle>
       </PageHeader>
 
-      {subscription && isActive ? (
+      {subLoading ? (
+        <NoPlanBanner>
+          <NoPlanContent>
+            <NoPlanTitle>Loading subscription...</NoPlanTitle>
+          </NoPlanContent>
+        </NoPlanBanner>
+      ) : subError ? (
+        <ErrorBanner>
+          <ErrorText>Failed to load subscription. Please try again.</ErrorText>
+          <RetryButton onClick={subRefetch}>Retry</RetryButton>
+        </ErrorBanner>
+      ) : subscription && isActive ? (
         <PlanBanner $status={subscriptionStatus}>
           <PlanInfo>
             <PlanIcon>{Icons.zap}</PlanIcon>

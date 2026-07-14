@@ -30,13 +30,17 @@ export async function POST(request: NextRequest) {
     const reference = generateReference();
     const amount = getAmountInKobo(plan, billingPeriod || '24-months');
 
-    // Get base URL from request or environment
+    // Get base URL from environment (required in production)
     let baseUrl = process.env.NEXT_PUBLIC_APP_URL;
-    if (!baseUrl && process.env.VERCEL_URL) {
-      baseUrl = `https://${process.env.VERCEL_URL}`;
-    }
     if (!baseUrl) {
-      baseUrl = request.headers.get('origin') || 'http://localhost:3000';
+      if (process.env.NODE_ENV === 'development') {
+        baseUrl = request.headers.get('origin') || 'http://localhost:3000';
+      } else {
+        return NextResponse.json(
+          { error: 'Server configuration error: NEXT_PUBLIC_APP_URL required' },
+          { status: 500 }
+        );
+      }
     }
     const callbackUrl = `${baseUrl}/success`;
 
