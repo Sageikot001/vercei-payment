@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { createAdminClient } from '@/lib/supabase/admin';
+import { getPlanLimits } from '@/lib/plans';
 import crypto from 'crypto';
 
 export async function GET() {
@@ -92,7 +93,7 @@ export async function POST(request: NextRequest) {
     // Check for active subscription
     const { data: subscription } = await supabase
       .from('subscriptions')
-      .select('id, status, expires_at')
+      .select('id, plan, status, expires_at')
       .eq('user_id', profile.id)
       .eq('status', 'active')
       .single();
@@ -110,6 +111,27 @@ export async function POST(request: NextRequest) {
         { error: 'Your subscription has expired. Please renew to add domains.' },
         { status: 403 }
       );
+    }
+
+    // Enforce the plan's custom domain limit
+    const limits = getPlanLimits(subscription.plan);
+    if (limits) {
+      const { count: domainCount, error: countError } = await supabase
+        .from('domains')
+        .select('*', { count: 'exact', head: true })
+        .eq('user_id', profile.id);
+
+      if (countError) {
+        console.error('Error counting domains:', countError);
+        return NextResponse.json({ error: 'Failed to add domain' }, { status: 500 });
+      }
+
+      if ((domainCount || 0) >= limits.customDomains) {
+        return NextResponse.json(
+          { error: `Your plan allows up to ${limits.customDomains} custom domain${limits.customDomains > 1 ? 's' : ''}. Upgrade to add more.` },
+          { status: 403 }
+        );
+      }
     }
 
     // If project specified, verify ownership

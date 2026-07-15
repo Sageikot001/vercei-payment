@@ -610,15 +610,27 @@ export default function DashboardPage() {
             <StatIcon>{Icons.globe}</StatIcon>
             <StatTrend>—</StatTrend>
           </StatHeader>
-          <StatValue>{loading ? '—' : stats?.domains || 0}</StatValue>
-          <StatLabel>Domains</StatLabel>
+          <StatValue>
+            {loading ? '—' : stats?.limits
+              ? `${stats?.domains || 0} of ${stats.limits.customDomains}`
+              : stats?.domains || 0}
+          </StatValue>
+          <StatLabel>Custom Domains</StatLabel>
         </StatCard>
         <StatCard>
           <StatHeader>
             <StatIcon>{Icons.storage}</StatIcon>
-            <StatTrend>0%</StatTrend>
+            <StatTrend>
+              {stats?.limits
+                ? `${Math.round(((stats?.storage || 0) / stats.limits.storageGb) * 100)}%`
+                : '—'}
+            </StatTrend>
           </StatHeader>
-          <StatValue>{loading ? '—' : `${stats?.storage || 0} GB`}</StatValue>
+          <StatValue>
+            {loading ? '—' : stats?.limits
+              ? `${stats?.storage || 0} of ${stats.limits.storageGb} GB`
+              : `${stats?.storage || 0} GB`}
+          </StatValue>
           <StatLabel>Storage Used</StatLabel>
         </StatCard>
       </StatsGrid>

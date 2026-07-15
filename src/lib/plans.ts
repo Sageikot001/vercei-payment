@@ -73,6 +73,25 @@ export const features: PlanFeature[] = [
   { name: 'Serverless Functions', values: ['10k inv/mo', '100k inv/mo', '500k inv/mo'] },
 ];
 
+export interface PlanLimits {
+  storageGb: number;
+  customDomains: number;
+  bandwidth: string;
+  buildMinutes: number;
+  teamMembers: number;
+}
+
+export const planLimits: Record<string, PlanLimits> = {
+  basic: { storageGb: 5, customDomains: 1, bandwidth: '100 GB/mo', buildMinutes: 300, teamMembers: 1 },
+  standard: { storageGb: 10, customDomains: 3, bandwidth: '500 GB/mo', buildMinutes: 1000, teamMembers: 3 },
+  premium: { storageGb: 20, customDomains: 5, bandwidth: '1 TB/mo', buildMinutes: 3000, teamMembers: 10 },
+};
+
+export function getPlanLimits(planId: string | null | undefined): PlanLimits | null {
+  if (!planId) return null;
+  return planLimits[planId] ?? null;
+}
+
 export function getPlanById(id: string): Plan | undefined {
   return plans.find((plan) => plan.id === id);
 }

@@ -3,6 +3,7 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { formatTimeAgo } from '@/lib/utils/time';
+import { getPlanLimits } from '@/lib/plans';
 
 export async function GET() {
   try {
@@ -30,6 +31,8 @@ export async function GET() {
         deployments: 0,
         domains: 0,
         storage: 0,
+        plan: null,
+        limits: null,
         recentActivity: [],
       });
     }
@@ -38,7 +41,7 @@ export async function GET() {
     thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
 
     // Execute queries in parallel
-    const [projectResult, deploymentResult, domainResult, activityResult] = await Promise.all([
+    const [projectResult, deploymentResult, domainResult, activityResult, subscriptionResult] = await Promise.all([
       supabase
         .from('projects')
         .select('*', { count: 'exact', head: true })
@@ -66,6 +69,12 @@ export async function GET() {
         .eq('user_id', profile.id)
         .order('created_at', { ascending: false })
         .limit(5),
+      supabase
+        .from('subscriptions')
+        .select('plan, expires_at')
+        .eq('user_id', profile.id)
+        .eq('status', 'active')
+        .maybeSingle(),
     ]);
 
     // Check for errors
@@ -79,11 +88,20 @@ export async function GET() {
       return NextResponse.json({ error: 'Failed to fetch stats' }, { status: 500 });
     }
 
+    // A subscription only grants benefits while it has not expired
+    const subscription = subscriptionResult.data;
+    const activePlan =
+      subscription && new Date(subscription.expires_at) > new Date()
+        ? subscription.plan
+        : null;
+
     return NextResponse.json({
       projects: projectResult.count || 0,
       deployments: deploymentResult.count || 0,
       domains: domainResult.count || 0,
       storage: 0,
+      plan: activePlan,
+      limits: getPlanLimits(activePlan),
       recentActivity: activityResult.data?.map((d) => {
         const projectData = d.projects as unknown as { name: string } | null;
         return {

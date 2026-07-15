@@ -2,11 +2,21 @@
 
 import { useState, useEffect, useCallback } from 'react';
 
+interface PlanLimits {
+  storageGb: number;
+  customDomains: number;
+  bandwidth: string;
+  buildMinutes: number;
+  teamMembers: number;
+}
+
 interface DashboardStats {
   projects: number;
   deployments: number;
   domains: number;
   storage: number;
+  plan: 'basic' | 'standard' | 'premium' | null;
+  limits: PlanLimits | null;
   recentActivity: Activity[];
 }
 
